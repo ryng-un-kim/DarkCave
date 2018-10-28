@@ -4,8 +4,11 @@ import math
 import random
 import time
 
+
+
 class Map:
     image = None
+
     def __init__(self):
         if Map.image == None:
             Map.image = load_image('map.png')
@@ -15,11 +18,14 @@ class Map:
 
 
 class Wall:
+    image = None
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
         self.SIZE = 64
-        self.image = load_image('wall.png')
+        if Wall.image == None:
+            Wall.image = load_image('wall.png')
 
     def update(self):
         self.image.x = self.x * TILESIZE
@@ -51,13 +57,16 @@ class Items:
 
 
 class Weapon:
+    unit = None
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
         self.frame2 = 0
         self.SIZE = 64
         self.frame = 0
-        self.unit = load_image('weapon.png')
+        if Weapon.unit == None:
+            Weapon.unit = load_image('weapon.png')
 
     def move(self, dx=0, dy=0):
         self.x += player.move(dx)
@@ -80,14 +89,19 @@ class Weapon:
 
 
 class Player:
+    unit = None
+    unit2 = None
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
         self.frame2 = 0
         self.SIZE = 64
         self.frame = 0
-        self.unit = load_image('player_idle2.png')
-        self.unit2 = load_image('weapon.png')
+        if Player.unit == None:
+            Player.unit = load_image('player_idle2.png')
+        if Player.unit2 == None:
+            Player.unit2 = load_image('weapon.png')
         self.hitbox = SDL_Rect
 
     def move(self, dx=0, dy=0):
@@ -125,11 +139,14 @@ class Player:
 
 
 class Mouse:
+    image = None
+
     def __init__(self, x, y):
         hide_cursor()
         self.x = x
         self.y = y
-        self.image = load_image("mouse.png")
+        if Mouse.image == None:
+            Mouse.image = load_image("mouse.png")
 
     def move(self, dx=0, dy=0):
         self.x = dx
@@ -197,25 +214,48 @@ VIEW_HEIGHT = 768
 
 FPS = 60
 TILESIZE = 64
-open_canvas(VIEW_WIDTH, VIEW_HEIGHT)
-player = Player((VIEW_WIDTH/2)/TILESIZE, (VIEW_HEIGHT/2)/TILESIZE)
 way = True
 click = False
 running = True
-dirt = Map()
-wall = Wall(100, 100)
-player.idle_update()
-mouse = Mouse(100, 100)
-weapon = Weapon((VIEW_WIDTH/2)/TILESIZE, (VIEW_HEIGHT/2)/TILESIZE)
-item = Items()
+player = None
+dirt = None
+wall = None
+mouse = None
+weapon = None
+item = None
 
-while running:
-    main()
-    handle_events()
+
+def enter():
+    global player, dirt, wall, mouse, weapon, item;
+    open_canvas(VIEW_WIDTH, VIEW_HEIGHT)
+    player = Player((VIEW_WIDTH / 2) / TILESIZE, (VIEW_HEIGHT / 2) / TILESIZE)
+    dirt = Map()
+    wall = Wall(100, 100)
+    player.idle_update()
+    mouse = Mouse(100, 100)
+    weapon = Weapon((VIEW_WIDTH / 2) / TILESIZE, (VIEW_HEIGHT / 2) / TILESIZE)
+    item = Items()
+
+
+def exit():
+    global player, dirt, wall, mouse, weapon, item;
+    del(player)
+    del(dirt)
+    del(wall)
+    del(mouse)
+    del(weapon)
+    del(item)
+    close_canvas()
+
+
+def update():
     player.update()
     mouse.update()
     wall.update()
     item.update()
+
+
+def draw():
     clear_canvas()
     dirt.draw()
     player.draw()
@@ -226,4 +266,14 @@ while running:
     update_canvas()
 
 
-close_canvas()
+def main():
+    enter()
+    while running:
+        handle_events()
+        update()
+        draw()
+    exit()
+
+
+if __name__ == '__main__':
+    main()
