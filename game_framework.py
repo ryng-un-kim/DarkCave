@@ -81,16 +81,26 @@ def quit():
     global running
     running = False
 
+import time
+
+frame_Time = 0.0
+
 
 def run(start_state):
     global running, stack
     running = True
     stack = [start_state]
     start_state.enter()
+    curr_Time = time.time()
+    global frame_Time
     while (running):
         stack[-1].handle_events()
         stack[-1].update()
         stack[-1].draw()
+        frame_Time = time.time() - curr_Time
+        frame_Rate = 1.0 / frame_Time
+        curr_Time += frame_Time
+        # print("Frame Time: %f sec, Frame Rate: %f fps" %(frame_Time, frame_Rate))
     # repeatedly delete the top of the stack
     while (len(stack) > 0):
         stack[-1].exit()

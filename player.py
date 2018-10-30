@@ -1,37 +1,59 @@
 from pico2d import *
 import settings
+import game_framework
 
-import time
+
 import threading
 import main
+
+PIXEL_PER_METER = (10.0/0.3)  # 10 pixel 30cm
+RUN_SPEED_KMPH = 20.0  # km/hour
+RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000/60)
+RUN_SPEED_MPS = (RUN_SPEED_MPM / 60)
+RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
+
+TIME_PER_ACTION = 2
+ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
+FRAMES_PER_ACTION = 8
+
+
+
 # Player Event
-RIGHT_DOWN, LEFT_DOWN, UP_DOWN, DOWN_DOWN, RIGHT_UP, LEFT_UP, UP_UP, DOWN_UP, LMOUSE_DOWN, LMOUSE_UP, RMOUSE_DOWN, RMOUSE_UP = range(12)
+RIGHT_DOWN, LEFT_DOWN, UP_DOWN, DOWN_DOWN, RIGHT_UP, LEFT_UP, UP_UP, \
+DOWN_UP, LMOUSE_DOWN, LMOUSE_UP, RMOUSE_DOWN, RMOUSE_UP, IdleState = range(13)
 
 key_event_table = {
-    (SDL_MOUSEBUTTONDOWN, SDL_BUTTON_LEFT): LMOUSE_DOWN,
     (SDL_KEYDOWN, SDLK_s): DOWN_DOWN,
     (SDL_KEYDOWN, SDLK_w): UP_DOWN,
     (SDL_KEYDOWN, SDLK_a): LEFT_DOWN,
-    (SDL_KEYDOWN, SDLK_d): RIGHT_DOWN
+    (SDL_KEYDOWN, SDLK_d): RIGHT_DOWN,
+    (SDL_KEYUP, SDLK_s): DOWN_UP,
+    (SDL_KEYUP, SDLK_w): UP_UP,
+    (SDL_KEYUP, SDLK_a): LEFT_UP,
+    (SDL_KEYUP, SDLK_d): RIGHT_UP
 }
-
+button_event_table = {
+    (SDL_MOUSEBUTTONDOWN, SDL_BUTTON_LEFT): LMOUSE_DOWN, (SDL_MOUSEBUTTONUP, SDL_BUTTON_LEFT): LMOUSE_UP,
+}
 class IdleState:
     @staticmethod
     def enter(player, event):
         if event == LEFT_DOWN:
-            player.velocityX -= 1
-            main.way = True
+            player.velocityX -= RUN_SPEED_PPS
         elif event == RIGHT_DOWN:
-            player.velocityX += 1
-            main.way = False
+            player.velocityX += RUN_SPEED_PPS
         elif event == UP_DOWN:
-            player.velocityY += 1
-            if main.way:
-                main.way = True
-            elif not main.way:
-                main.way = False
+            player.velocityY += RUN_SPEED_PPS
         elif event == DOWN_DOWN:
-            player.velocityY -= 1
+            player.velocityY -= RUN_SPEED_PPS
+        elif event == LEFT_UP:
+            player.velocityX += RUN_SPEED_PPS
+        elif event == RIGHT_UP:
+            player.velocityX -= RUN_SPEED_PPS
+        elif event == UP_UP:
+            player.velocityY -= RUN_SPEED_PPS
+        elif event == DOWN_UP:
+            player.velocityY += RUN_SPEED_PPS
 
     @staticmethod
     def exit(player, event):
@@ -39,36 +61,48 @@ class IdleState:
 
     @staticmethod
     def do(player):
-        player.frame = (player.frame + 1) % 4
-        player.x += player.velocityX
-        player.y += player.velocityY
-        if main.way:
-            player.frame2 = 64
-        else:
-            player.frame2 = 0
+        player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_Time) % 4
 
     @staticmethod
     def draw(player):
-        player.unit.clip_draw(player.frame * player.SIZE, player.frame2, 64, 64, player.x, player.y)
-
+        if main.way:
+            player.unit.clip_draw(int(player.frame) * player.SIZE, 128, 64, 64, player.x, player.y)
+        else:
+            player.unit.clip_draw(int(player.frame) * player.SIZE, 196, 64, 64, player.x, player.y)
 
 class MoveState:
     @staticmethod
     def enter(player, event):
         if event == LEFT_DOWN:
-            player.velocityX -= 1
-            main.way = True
-        elif event == RIGHT_DOWN:
-            player.velocityX += 1
+            player.velocityX -= RUN_SPEED_PPS
             main.way = False
+        elif event == RIGHT_DOWN:
+            player.velocityX += RUN_SPEED_PPS
+            main.way = True
         elif event == UP_DOWN:
-            player.velocityY += 1
+            player.velocityY += RUN_SPEED_PPS
             if main.way:
                 main.way = True
-            elif not main.way:
+            else:
                 main.way = False
         elif event == DOWN_DOWN:
-            player.velocityY -= 1
+            player.velocityY -= RUN_SPEED_PPS
+            if main.way:
+                main.way = True
+            else:
+                main.way = False
+        elif event == LEFT_UP:
+            player.velocityX += RUN_SPEED_PPS
+            if player.velocityX > 0:
+                main.way = True
+        elif event == RIGHT_UP:
+            player.velocityX -= RUN_SPEED_PPS
+            if player.velocityX < 0:
+                main.way = False
+        elif event == UP_UP:
+            player.velocityY -= RUN_SPEED_PPS
+        elif event == DOWN_UP:
+            player.velocityY += RUN_SPEED_PPS
 
     @staticmethod
     def exit(player, event):
@@ -76,18 +110,19 @@ class MoveState:
 
     @staticmethod
     def do(player):
-        player.frame = (player.frame + 1) % 4
-        player.x += player.velocityX
-        player.y += player.velocityY
-        if main.way:
-            player.frame2 = 64
-        else:
-            player.frame2 = 0
+        player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_Time) % 4
+        player.x += player.velocityX * game_framework.frame_Time
+        player.y += player.velocityY * game_framework.frame_Time
+        if player.velocityX == 0 and player.velocityY == 0:
+            player.add_event(IdleState)
+
 
     @staticmethod
     def draw(player):
-        player.unit.clip_draw(player.frame * player.SIZE, player.frame2, 64, 64, player.x, player.y)
-
+        if main.way:
+            player.unit.clip_draw(int(player.frame) * player.SIZE, 0, 64, 64, player.x, player.y)
+        else:
+            player.unit.clip_draw(int(player.frame) * player.SIZE, 64, 64, 64, player.x, player.y)
 
 class AttackState:
     @staticmethod
@@ -96,23 +131,24 @@ class AttackState:
 
     @staticmethod
     def exit(player, event):
-        pass
+        print("HI MAN")
 
     @staticmethod
     def do(player):
-        player.frame = (player.frame + 1) % 8
-        player.timer -= 1
+        pass
 
     @staticmethod
     def draw(player):
         pass
 
 next_state_table = {
-    IdleState: {LMOUSE_DOWN: AttackState, RIGHT_DOWN: MoveState, LEFT_DOWN: MoveState, RIGHT_UP: IdleState,
-                LEFT_UP: IdleState, UP_DOWN: MoveState, DOWN_DOWN: MoveState, UP_UP: IdleState, DOWN_UP: IdleState},
-    MoveState: {RIGHT_DOWN: IdleState, LEFT_DOWN: IdleState, RIGHT_UP: IdleState, LEFT_UP: IdleState,
-                UP_DOWN: IdleState, DOWN_DOWN: IdleState, UP_UP: IdleState, DOWN_UP: IdleState}
+    IdleState: {LMOUSE_DOWN: AttackState, RIGHT_DOWN: MoveState, LEFT_DOWN: MoveState, RIGHT_UP: MoveState,
+                LEFT_UP: MoveState, UP_DOWN: MoveState, DOWN_DOWN: MoveState, UP_UP: MoveState, DOWN_UP: MoveState},
+    MoveState: {LMOUSE_DOWN: AttackState, RIGHT_DOWN: MoveState, LEFT_DOWN: MoveState, RIGHT_UP: MoveState, LEFT_UP: MoveState,
+                IdleState: IdleState, UP_DOWN: MoveState, DOWN_DOWN: MoveState, UP_UP: MoveState, DOWN_UP: MoveState},
+    AttackState: {LMOUSE_DOWN: AttackState, LMOUSE_UP: MoveState
 
+    }
 
 }
 
@@ -124,14 +160,19 @@ class Player:
         self.y = y
         self.velocityX = 0
         self.velocityY = 0
-        self.frame2 = 0
+        self.dir = 1
+        self.dir2 = 1
         self.SIZE = 64
         self.frame = 0
         self.event_que = []
         self.cur_state = IdleState
         self.cur_state.enter(self, None)
         if Player.unit == None:
-            Player.unit = load_image('player_idle2.png')
+            Player.unit = load_image('player_animation.png')
+
+    def effect(self):
+        effect = Effect(self.x, self.y)
+        game_world.add_object(effect, 1)
 
     def add_event(self, event):
         self.event_que.insert(0, event)
@@ -154,6 +195,9 @@ class Player:
         if (event.type, event.key) in key_event_table:
             key_event = key_event_table[(event.type, event.key)]
             self.add_event(key_event)
+        elif (event.type, event.button) in button_event_table:
+            button_event = button_event_table[(event.type, event.button)]
+            self.add_event(button_event)
 
 
 """class Player:
