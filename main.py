@@ -6,6 +6,7 @@ import math
 import random
 
 from player import Player
+from Collision import Collision
 
 
 class Map:
@@ -17,6 +18,7 @@ class Map:
 
     def update(self):
         pass
+
 
 
     def draw(self):
@@ -45,68 +47,10 @@ class Items:
         self.image.clip_draw(0, 0, 64, 64, self.x, self.y)
 
 
-class Weapon:
-    unit = None
-
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.frame2 = 0
-        self.SIZE = 64
-        self.frame = 0
-        if Weapon.unit == None:
-            Weapon.unit = load_image('weapon.png')
-
-    def move(self, dx=0, dy=0):
-        self.x += player.move(dx)
-        self.y += player.move(dy)
-
-    def idle_update(self):
-        self.frame = (self.frame + 1) % 4
-        threading.Timer(0.3, self.idle_update).start()
-
-    def update(self):
-        self.unit.x = self.x * TILESIZE
-        self.unit.y = self.y * TILESIZE
-        if way:
-            self.frame2 = 0
-        else:
-            self.frame2 = 0
-
-    def draw(self):
-        self.unit.clip_draw(self.frame * self.SIZE, self.frame2, 64, 64, self.unit.x, self.unit.y)
-
-
-class Effect:
-    image = None
-
-    def __init__(self, x = 0, y = 0):
-        self.x, self.y = x, y
-        self.frame2 = 120
-        self.frame = 0
-        self.SIZE = 96
-        self.timer = 5
-        if Effect.image == None:
-            self.image = load_image('Attack.png')
-
-    def update(self):
-        for i in range(0, 100):
-            self.frame = (self.frame + 1) % 5
-            i += 1
-        self.timer -= 1
-        if self.timer == 0:
-            pass
-
-
-    def draw(self):
-        if click:
-            self.image.clip_draw(self.frame * self.SIZE, self.frame2, 96, 120, player.unit.x - TILESIZE, player.unit.y)
-
-
 class Mouse:
     image = None
 
-    def __init__(self, x, y):
+    def __init__(self, x=0, y=0):
         hide_cursor()
         self.x = x
         self.y = y
@@ -124,25 +68,24 @@ class Mouse:
     def draw(self):
         self.image.draw(self.image.x, self.image.y)
 
+
 def handle_events():
+    global way
     events = get_events()
     for event in events:
         if event.type == SDL_QUIT:
             game_framework.quit()
         elif event.type == SDL_MOUSEMOTION:
             mouse.move(dx=event.x, dy=VIEW_HEIGHT - 1 - event.y)
-        elif event.type == SDL_MOUSEBUTTONDOWN:
-            if event.button == SDL_BUTTON_LEFT:
-                print("click : ", event.x, event.y)
-                click = True
-        elif event.type == SDL_MOUSEBUTTONUP:
-            if event.button == SDL_BUTTON_LEFT:
-                print("click : ", event.x, event.y)
-                click = False
+            if event.x > player.x:
+                way = True
+            elif event.x < player.x:
+                way = False
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
                 game_framework.quit()
         else:
             player.handle_event(event)
+
 
 name = "MainState"
 
@@ -158,19 +101,20 @@ dirt = None
 mouse = None
 weapon = None
 item = None
+collision = None
 def enter():
-    global player, dirt, wall, mouse, weapon, item
-    player = Player((VIEW_WIDTH / 2) / TILESIZE, (VIEW_HEIGHT / 2) / TILESIZE)
+    global player, dirt, wall, mouse, weapon, item, collision
+    player = Player((VIEW_WIDTH / 2), (VIEW_HEIGHT / 2))
     dirt = Map()
     # player.idle_update()
     mouse = Mouse(100, 100)
-    weapon = Weapon((VIEW_WIDTH / 2) / TILESIZE, (VIEW_HEIGHT / 2) / TILESIZE)
     item = Items()
+    collision = Collision()
     settings.add_object(dirt, 0)
-    settings.add_object(weapon, 1)
-    settings.add_object(mouse, 4)
-    settings.add_object(item, 2)
-    settings.add_object(player, 3)
+    settings.add_object(mouse, 3)
+    settings.add_object(item, 1)
+    settings.add_object(player, 2)
+    settings.add_object(collision, 4)
 
 def exit():
     settings.clear()

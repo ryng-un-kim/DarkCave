@@ -1,3 +1,7 @@
+VIEW_WIDTH = 1024
+VIEW_HEIGHT = 768
+
+
 class GameState:
     def __init__(self, state):
         self.enter = state.enter
@@ -53,14 +57,12 @@ def change_state(state):
     state.enter()
 
 
-
 def push_state(state):
     global stack
     if (len(stack) > 0):
         stack[-1].pause()
     stack.append(state)
     state.enter()
-
 
 
 def pop_state():
@@ -76,12 +78,13 @@ def pop_state():
         stack[-1].resume()
 
 
-
 def quit():
     global running
     running = False
 
+
 import time
+
 
 frame_Time = 0.0
 
@@ -110,7 +113,6 @@ def run(start_state):
 def test_game_framework():
     start_state = TestGameState('StartState')
     run(start_state)
-
 
 
 if __name__ == '__main__':
