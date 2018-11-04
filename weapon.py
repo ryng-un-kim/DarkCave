@@ -79,7 +79,7 @@ class Weapon:
 
 
     def draw(self):
-        self.unit.clip_draw(self.frame * self.SIZE, 0, 64, 64, self.x, self.y)
+        self.unit.clip_draw(self.frame * self.SIZE, 0, 32, 32, self.x, self.y)
 
 
 

@@ -29,11 +29,13 @@ class Items:
     image = None
 
     def __init__(self):
-        self.randx = [n for n in range(64, 700, 64)]
-        self.randy = [n for n in range(64, 700, 64)]
+        self.size = 40
+        self.randx = [n for n in range(64 + self.size, VIEW_WIDTH - 64 - self.size, 64)]
+        self.randy = [n for n in range(64 + self.size, VIEW_HEIGHT - 64 - self.size, 64)]
         self.x = random.choice(self.randx)
         self.y = random.choice(self.randy)
         self.r = 0
+        self.hitbox = (self.x - self.size/2,self.y - self.size/2,self.x + self.size/2,self.y + self.size/2)
 
         if Items.image == None:
             Items.image = load_image("Item.png")
@@ -43,9 +45,13 @@ class Items:
         self.r += game_framework.frame_Time * 10
         # 맵 바뀔 때 아이템 제거
 
+    def hit(self):
+        print('hit!')
+
     def draw(self):
         self.image.clip_draw(0, 0, 64, 64, self.x, self.y)
-
+        self.hitbox = (self.x - self.size / 2, self.y - self.size / 2, self.x + self.size / 2, self.y + self.size / 2)
+        # draw_rectangle(self.hitbox[0], self.hitbox[1], self.hitbox[2], self.hitbox[3])
 
 class Mouse:
     image = None
@@ -88,7 +94,6 @@ def handle_events():
 
 
 name = "MainState"
-
 VIEW_WIDTH = 1024
 VIEW_HEIGHT = 768
 

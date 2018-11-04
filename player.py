@@ -80,6 +80,7 @@ class IdleState:
 
     @staticmethod
     def draw(player):
+        player.collision()
         if main.way:
             player.unit.clip_draw(int(player.frame) * player.SIZE, 128, 64, 64, player.x, player.y)
         else:
@@ -111,6 +112,10 @@ class MoveState:
 
     @staticmethod
     def do(player):
+        if main.mouse.x > player.x:
+            main.way = True
+        elif main.mouse.x < player.x:
+            main.way = False
         player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_Time) % 4
         player.x += player.velocityX * game_framework.frame_Time
         player.y += player.velocityY * game_framework.frame_Time
@@ -120,11 +125,12 @@ class MoveState:
 
     @staticmethod
     def draw(player):
+        player.collision()
         if main.way:
             player.unit.clip_draw(int(player.frame) * player.SIZE, 0, 64, 64, player.x, player.y)
         else:
             player.unit.clip_draw(int(player.frame) * player.SIZE, 64, 64, 64, player.x, player.y)
-        player.collision()
+
 
 
 
@@ -146,6 +152,10 @@ class AttackState:
 
     @staticmethod
     def do(player):
+        if main.mouse.x > player.x:
+            main.way = True
+        elif main.mouse.x < player.x:
+            main.way = False
         player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_Time) % 4
         player.x += player.velocityX * game_framework.frame_Time
         player.y += player.velocityY * game_framework.frame_Time
@@ -184,7 +194,9 @@ class Player:
         self.velocityX = velocityX
         self.velocityY = velocityY
         self.SIZE = 64
+        self.HitboxSize = 40
         self.frame = 0
+        self.hitbox = ((self.x - self.HitboxSize/2), (self.y - self.HitboxSize/2), (self.x + self.HitboxSize/2), (self.y + self.HitboxSize/2))
         self.event_que = []
         self.cur_state = IdleState
         self.cur_state.enter(self, None)
@@ -194,6 +206,7 @@ class Player:
     def effect_act(self):
         effect = Effect(self.x, self.y, self.velocityX, self.velocityY)
         settings.add_object(effect, 6)
+
 
     def weapon_act(self):
         weapon = Weapon(self.x, self.y, self.velocityX, self.velocityY)
@@ -220,10 +233,23 @@ class Player:
             self.cur_state.enter(self, event)
 
     def collision(self):
-        collision = Collision(self.x, self.y)
-        settings.add_object(collision, 1)
+        HitHorizontal = False
+        HitVertical = False
+        # draw_rectangle(self.hitbox[0], self.hitbox[1], self.hitbox[2], self.hitbox[3])
+        m = main.item
+        if m.hitbox[2] > self.hitbox[0] and self.hitbox[2] > m.hitbox[0]:
+            HitHorizontal = True
+        if self.hitbox[1] < m.hitbox[3] and m.hitbox[1] < self.hitbox[3]:
+            HitVertical = True
+
+        if HitHorizontal == True and HitVertical == True:
+            m.hit()
+
 
     def draw(self):
+        self.hitbox = (
+        (self.x - self.HitboxSize / 2), (self.y - self.HitboxSize / 2), (self.x + self.HitboxSize / 2), (self.y + self.HitboxSize / 2))
+
         self.cur_state.draw(self)
 
     def handle_event(self, event):
