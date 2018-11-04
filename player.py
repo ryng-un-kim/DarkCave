@@ -207,6 +207,9 @@ class Player:
         effect = Effect(self.x, self.y, self.velocityX, self.velocityY)
         settings.add_object(effect, 6)
 
+    def set_item(self):
+        item = Items()
+        settings.add_object(item, 6)
 
     def weapon_act(self):
         weapon = Weapon(self.x, self.y, self.velocityX, self.velocityY)

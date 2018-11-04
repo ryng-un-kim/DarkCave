@@ -56,7 +56,7 @@ class Weapon:
             self.ThrowVelX += self.u
         elif self.ThrowVelX < 0:
             self.ThrowVelX = 0
-        if self.fy - self.y < 12:
+        if self.fy - self.y < 16:
             self.y -= self.ThrowVelY * game_framework.frame_Time
             self.ThrowVelY += self.accy
         else:

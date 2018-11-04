@@ -30,8 +30,8 @@ class Items:
 
     def __init__(self):
         self.size = 40
-        self.randx = [n for n in range(64 + self.size, VIEW_WIDTH - 64 - self.size, 64)]
-        self.randy = [n for n in range(64 + self.size, VIEW_HEIGHT - 64 - self.size, 64)]
+        self.randx = [n for n in range(500 + self.size, VIEW_WIDTH - 64 - self.size, 64)]
+        self.randy = [n for n in range(500 + self.size, VIEW_HEIGHT - 64 - self.size, 64)]
         self.x = random.choice(self.randx)
         self.y = random.choice(self.randy)
         self.r = 0
@@ -47,11 +47,29 @@ class Items:
 
     def hit(self):
         print('hit!')
+        settings.remove_object(self)
 
     def draw(self):
         self.image.clip_draw(0, 0, 64, 64, self.x, self.y)
         self.hitbox = (self.x - self.size / 2, self.y - self.size / 2, self.x + self.size / 2, self.y + self.size / 2)
         # draw_rectangle(self.hitbox[0], self.hitbox[1], self.hitbox[2], self.hitbox[3])
+
+class Bonfire:
+    image = None
+
+    def __init__(self):
+        self.x = 200
+        self.y = 400
+        self.frame = 0
+        if Bonfire.image == None:
+            Bonfire.image = load_image('bonfire.png')
+
+    def update(self):
+        pass
+
+    def draw(self):
+        self.image.draw(self.x, self.y)
+
 
 class Mouse:
     image = None
@@ -61,7 +79,7 @@ class Mouse:
         self.x = x
         self.y = y
         if Mouse.image == None:
-            Mouse.image = load_image("mouse.png")
+            Mouse.image = load_image("mouse3.png")
 
     def move(self, dx=0, dy=0):
         self.x = dx
@@ -107,19 +125,24 @@ mouse = None
 weapon = None
 item = None
 collision = None
+bonfire = None
+
+
 def enter():
-    global player, dirt, wall, mouse, weapon, item, collision
+    global player, dirt, wall, mouse, weapon, item, collision, bonfire
     player = Player((VIEW_WIDTH / 2), (VIEW_HEIGHT / 2))
     dirt = Map()
     # player.idle_update()
     mouse = Mouse(100, 100)
     item = Items()
+    bonfire = Bonfire()
     collision = Collision()
     settings.add_object(dirt, 0)
-    settings.add_object(mouse, 3)
-    settings.add_object(item, 1)
-    settings.add_object(player, 2)
-    settings.add_object(collision, 4)
+    settings.add_object(mouse, 6)
+    settings.add_object(item, 6)
+    settings.add_object(player, 6)
+    # settings.add_object(bonfire, 0)
+    # settings.add_object(collision, 4)
 
 def exit():
     settings.clear()
