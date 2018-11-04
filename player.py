@@ -68,7 +68,6 @@ class IdleState:
         elif event == LMOUSE_DOWN:
             print("gd")
 
-
     @staticmethod
     def exit(player, event):
         if event == LMOUSE_DOWN:
