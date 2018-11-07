@@ -43,7 +43,6 @@ class Weapon:
             self.ThrowVelX = 0
             self.u = 0
         self.ThrowVelX += self.accx     # 던지기 직전 가속도
-        print(self.accx)
 
     def update(self):
         self.accx = 0        # 던진 후 가속도
@@ -68,7 +67,6 @@ class Weapon:
             self.velx = 0
         self.timer = get_time()
         self.etime = self.timer - self.first_timer
-        print(self.accx)
         if self.x > game_framework.VIEW_WIDTH - 64 - 4:
             self.ThrowVelX *= -1
             self.velx *= -0.5

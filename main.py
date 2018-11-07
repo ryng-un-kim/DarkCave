@@ -6,23 +6,27 @@ import math
 import random
 
 from player import Player
-from Collision import Collision
 
 
 class Map:
     image = None
 
     def __init__(self):
+        self.x = VIEW_WIDTH/2
+        self.y = VIEW_HEIGHT/2
         if Map.image == None:
             Map.image = load_image('map.png')
 
     def update(self):
         pass
 
-
+    def get_hitbox(self):
+        return self.x - VIEW_WIDTH/2 + 32, self.y - VIEW_HEIGHT/2 + 192, self.x + VIEW_WIDTH/2 - 32, self.y + VIEW_HEIGHT/2 - 32
 
     def draw(self):
-        self.image.draw(VIEW_WIDTH/2, VIEW_HEIGHT/2)
+        self.image.draw(self.x, self.y)
+        draw_rectangle(*self.get_hitbox())
+
 
 
 class Items:
@@ -35,10 +39,11 @@ class Items:
         self.x = random.choice(self.randx)
         self.y = random.choice(self.randy)
         self.r = 0
-        self.hitbox = (self.x - self.size/2,self.y - self.size/2,self.x + self.size/2,self.y + self.size/2)
-
         if Items.image == None:
             Items.image = load_image("Item.png")
+
+    def get_hitbox(self):
+        return self.x - self.size / 2, self.y - self.size / 2, self.x + self.size / 2, self.y + self.size / 2
 
     def update(self):
         self.y = self.y + math.sin(self.r)/5
@@ -51,8 +56,7 @@ class Items:
 
     def draw(self):
         self.image.clip_draw(0, 0, 64, 64, self.x, self.y)
-        self.hitbox = (self.x - self.size / 2, self.y - self.size / 2, self.x + self.size / 2, self.y + self.size / 2)
-        # draw_rectangle(self.hitbox[0], self.hitbox[1], self.hitbox[2], self.hitbox[3])
+        draw_rectangle(*self.get_hitbox())
 
 class Bonfire:
     image = None
@@ -92,6 +96,17 @@ class Mouse:
     def draw(self):
         self.image.draw(self.image.x, self.image.y)
 
+def collision(a, b):
+    left_a, bot_a, right_a, top_a = a.get_hitbox()
+    left_b, bot_b, right_b, top_b = b.get_hitbox()
+
+    if left_a > right_b: return False
+    if right_a < left_b: return False
+    if top_a < bot_b: return False
+    if bot_a > top_b: return False
+
+    return True
+
 
 def handle_events():
     global way
@@ -120,29 +135,25 @@ way = True
 click = False
 running = True
 player = None
-dirt = None
+ground = None
 mouse = None
 weapon = None
-item = None
-collision = None
+items = None
 bonfire = None
 
 
 def enter():
-    global player, dirt, wall, mouse, weapon, item, collision, bonfire
+    global player, ground, wall, mouse, weapon, items, bonfire
     player = Player((VIEW_WIDTH / 2), (VIEW_HEIGHT / 2))
-    dirt = Map()
-    # player.idle_update()
+    ground = Map()
     mouse = Mouse(100, 100)
-    item = Items()
+    items = [Items() for i in range(10)]
     bonfire = Bonfire()
-    collision = Collision()
-    settings.add_object(dirt, 0)
+    settings.add_object(ground, 0)
     settings.add_object(mouse, 6)
-    settings.add_object(item, 6)
+    settings.add_objects(items, 5)
     settings.add_object(player, 6)
     # settings.add_object(bonfire, 0)
-    # settings.add_object(collision, 4)
 
 def exit():
     settings.clear()
@@ -151,6 +162,14 @@ def exit():
 def update():
     for game_object in settings.all_objects():
         game_object.update()
+    for item in items:
+        if collision(player, item):
+            items.remove(item)
+            settings.remove_object(item)
+            print('Hit!')
+
+
+
 
 
 def draw():

@@ -4,7 +4,6 @@ import settings
 
 import random
 import main
-from Collision import Collision
 from effect import Effect
 from weapon import Weapon
 
@@ -79,11 +78,11 @@ class IdleState:
 
     @staticmethod
     def draw(player):
-        player.collision()
         if main.way:
             player.unit.clip_draw(int(player.frame) * player.SIZE, 128, 64, 64, player.x, player.y)
         else:
             player.unit.clip_draw(int(player.frame) * player.SIZE, 196, 64, 64, player.x, player.y)
+
 
 class MoveState:
     @staticmethod
@@ -105,6 +104,7 @@ class MoveState:
         elif event == DOWN_UP:
             player.velocityY += RUN_SPEED_PPS
 
+        player.first_timer = get_time()
     @staticmethod
     def exit(player, event):
         pass
@@ -119,12 +119,15 @@ class MoveState:
         player.x += player.velocityX * game_framework.frame_Time
         player.y += player.velocityY * game_framework.frame_Time
         if player.velocityX == 0 and player.velocityY == 0:
-            player.add_event(IdleState)
+            player.timer = get_time()
+            player.etime = player.timer - player.first_timer
+            print(player.etime)
+            if player.etime > 0.1:
+                player.add_event(IdleState)
 
 
     @staticmethod
     def draw(player):
-        player.collision()
         if main.way:
             player.unit.clip_draw(int(player.frame) * player.SIZE, 0, 64, 64, player.x, player.y)
         else:
@@ -193,11 +196,13 @@ class Player:
         self.velocityX = velocityX
         self.velocityY = velocityY
         self.SIZE = 64
-        self.HitboxSize = 40
+        self.HitboxSize = 30
         self.frame = 0
-        self.hitbox = ((self.x - self.HitboxSize/2), (self.y - self.HitboxSize/2), (self.x + self.HitboxSize/2), (self.y + self.HitboxSize/2))
         self.event_que = []
         self.cur_state = IdleState
+        self.first_timer = 0
+        self.timer = 0
+        self.etime = 0
         self.cur_state.enter(self, None)
         if Player.unit == None:
             Player.unit = load_image('player_animation.png')
@@ -206,9 +211,9 @@ class Player:
         effect = Effect(self.x, self.y, self.velocityX, self.velocityY)
         settings.add_object(effect, 6)
 
-    def set_item(self):
-        item = Items()
-        settings.add_object(item, 6)
+    def get_hitbox(self):
+        return (self.x - self.HitboxSize / 2), (self.y - self.HitboxSize / 2), (self.x + self.HitboxSize / 2), (self.y + self.HitboxSize / 2)
+
 
     def weapon_act(self):
         weapon = Weapon(self.x, self.y, self.velocityX, self.velocityY)
@@ -218,15 +223,10 @@ class Player:
     def add_event(self, event):
         self.event_que.insert(0, event)
 
+    def stop(self):
+        print('Hit!')
+
     def update(self):
-        if self.x > game_framework.VIEW_WIDTH - 64 - 16:
-            self.x = game_framework.VIEW_WIDTH - 64 - 16
-        elif self.x < 0 + 64 + 16:
-            self.x = 0 + 64 + 16
-        if self.y > game_framework.VIEW_HEIGHT - 64 - 16:
-            self.y = game_framework.VIEW_HEIGHT - 64 - 16
-        elif self.y < 0 + 64 + 16:
-            self.y = 0 + 64 + 16
         self.cur_state.do(self)
         if len(self.event_que) > 0:
             event = self.event_que.pop()
@@ -234,25 +234,10 @@ class Player:
             self.cur_state = next_state_table[self.cur_state][event]
             self.cur_state.enter(self, event)
 
-    def collision(self):
-        HitHorizontal = False
-        HitVertical = False
-        # draw_rectangle(self.hitbox[0], self.hitbox[1], self.hitbox[2], self.hitbox[3])
-        m = main.item
-        if m.hitbox[2] > self.hitbox[0] and self.hitbox[2] > m.hitbox[0]:
-            HitHorizontal = True
-        if self.hitbox[1] < m.hitbox[3] and m.hitbox[1] < self.hitbox[3]:
-            HitVertical = True
-
-        if HitHorizontal == True and HitVertical == True:
-            m.hit()
-
 
     def draw(self):
-        self.hitbox = (
-        (self.x - self.HitboxSize / 2), (self.y - self.HitboxSize / 2), (self.x + self.HitboxSize / 2), (self.y + self.HitboxSize / 2))
-
         self.cur_state.draw(self)
+        draw_rectangle(*self.get_hitbox())
 
     def handle_event(self, event):
         if (event.type, event.key, event.button) in key_event_table:
