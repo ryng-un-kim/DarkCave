@@ -1,83 +1,94 @@
 from pico2d import *
-import settings
+import game_world
 import game_framework
 import player
 import main
+
+VIEW_WIDTH = 1024
+VIEW_HEIGHT = 768
+PIXEL_PER_METER = (10.0/0.3)  # 10 pixel 30cm
+THROW_SPEED_KMPH = 40.0  # km/hour
+THROW_SPEED_MPM = (THROW_SPEED_KMPH * 1000/60)
+THROW_SPEED_MPM = (THROW_SPEED_MPM / 60)
+THROW_SPEED_MPM = (THROW_SPEED_MPM * PIXEL_PER_METER)
 
 
 class Weapon:
     unit = None
 
-    def __init__(self, x=100, y=100, velx=5, vely=5):
+    def __init__(self, x=100, y=100, x_velocity=5, y_velocity=5):
         self.x = x
         self.y = y
-        self.fx = x     # 초기값
-        self.fy = y     # 초기값
-        self.SIZE = 32
+        self.x_init = x     # 초기값
+        self.y_init = y     # 초기값
+        self.size = 32
         self.frame = 0
-        self.first_timer = get_time()
-        self.timer = 0
-        self.etime = 0
-        self.accx = 0     # 가속도
-        self.accy = 0.98  # 중력가속도
-        self.Fric = 1   # 저항
+        self.start_timer = get_time()
+        self.end_timer = 0
+        self.elapsed_time = 0
+        self.x_acceleration = 0     # 가속도
+        self.y_acceleration = 9.8  # 중력가속도
+        self.frictional_force = 1   # 마찰력
         self.dir = 1    # 방향
-        self.ThrowVelY = 0
-        self.velx, self.vely = velx, vely
-        if main.mouse.x - self.x > 0:
-            self.switch = 1
-        else:
-            self.switch = 0     # 마우스 좌우 발사
+        self.y_throwvelocity = 0
+        self.x_velocity, self.y_velocity = x_velocity, y_velocity
+        if main.mousecursor.x - self.x > 0:
+            self.dir = 1
+        else:     # 마우스 좌우 발사
             self.dir = -1
-        self.ThrowVelX = player.THROW_SPEED_MPM + (self.dir * velx) # 돌 던지는 속도
+        self.x_throwvelocity = THROW_SPEED_MPM + (self.dir * x_velocity) # 돌 던지는 속도
         if Weapon.unit == None:
             Weapon.unit = load_image('weapon.png')
 
-    def setForce(self, force, mass):
+    def set_force(self, force, mass):
         self.force = force
         self.mass = mass
-        self.accx = self.force/self.mass
-        self.Fric = 1*mass
-        self.u = force - self.Fric
+        self.x_acceleration = self.force/self.mass
+        self.frictional_force = 1*mass
+        self.u = force - self.frictional_force
         if self.u < 0:
-            self.ThrowVelX = 0
+            self.x_throwvelocity = 0
             self.u = 0
-        self.ThrowVelX += self.accx     # 던지기 직전 가속도
+        self.x_throwvelocity += self.x_acceleration     # 던지기 직전 가속도
 
     def update(self):
-        self.accx = 0        # 던진 후 가속도
-        if self.switch == 1:
-            self.x += self.ThrowVelX * game_framework.frame_Time
-        elif self.switch == 0:
-            self.x -= self.ThrowVelX * game_framework.frame_Time
-        self.ThrowVelX -= self.Fric
-        if self.ThrowVelX > 0:
-            self.ThrowVelX += self.u
-        elif self.ThrowVelX < 0:
-            self.ThrowVelX = 0
-        if self.fy - self.y < 16:
-            self.y -= self.ThrowVelY * game_framework.frame_Time
-            self.ThrowVelY += self.accy
+        self.x_acceleration = 0        # 던진 후 가속도
+        if self.dir == 1:
+            self.x += self.x_throwvelocity * game_framework.frame_Time
+        elif self.dir == -1:
+            self.x -= self.x_throwvelocity * game_framework.frame_Time
+        self.x_throwvelocity -= self.frictional_force
+
+        if self.x_throwvelocity > 0:
+            self.x_throwvelocity += self.u
+        elif self.x_throwvelocity < 0:
+            self.x_throwvelocity = 0
+
+        if self.y_init - self.y < 16:
+            self.y -= self.y_throwvelocity * game_framework.frame_Time
+            self.y_throwvelocity += self.y_acceleration
         else:
-            self.ThrowVelX *= -1
+            self.x_throwvelocity *= -1
 
 
         if self.y < 0 + 64 + 4:
-            self.ThrowVelY *= -0.5
-            self.velx = 0
-        self.timer = get_time()
-        self.etime = self.timer - self.first_timer
-        if self.x > game_framework.VIEW_WIDTH - 64 - 4:
-            self.ThrowVelX *= -1
-            self.velx *= -0.5
-        if self.etime > 1:
-            settings.remove_object(self)
+            self.y_throwvelocity *= -0.5
+            self.x_velocity = 0
+        self.end_timer = get_time()
+        self.elapsed_time = self.end_timer - self.start_timer
+        if self.x > VIEW_WIDTH - 64 - 4:
+            self.x_throwvelocity *= -1
+            self.x_velocity *= -0.5
+        if self.elapsed_time > 1:
+            game_world.remove_object(self)
 
 
-
+    def get_bb(self):
+        return self.x - 5, self.y - 5, self.x + 10, self.y + 10
 
     def draw(self):
-        self.unit.clip_draw(self.frame * self.SIZE, 0, 32, 32, self.x, self.y)
+        self.unit.clip_draw(self.frame * self.size, 0, 32, 32, self.x, self.y)
+        draw_rectangle(*self.get_bb())
 
 
 

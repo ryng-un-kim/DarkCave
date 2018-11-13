@@ -1,7 +1,3 @@
-VIEW_WIDTH = 1024
-VIEW_HEIGHT = 768
-
-
 class GameState:
     def __init__(self, state):
         self.enter = state.enter
