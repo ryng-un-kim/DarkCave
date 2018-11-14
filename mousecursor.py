@@ -10,7 +10,7 @@ class MouseCursor:
         self.x = x
         self.y = y
         if MouseCursor.image == None:
-            MouseCursor.image = load_image("mouse3.png")
+            MouseCursor.image = load_image("resource\mouse3.png")
 
     def position(self, x=0, y=0):
         self.x = x

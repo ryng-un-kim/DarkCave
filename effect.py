@@ -19,7 +19,7 @@ class Effect:
         self.timer = 5
         self.x_velocity, self.y_velocity = x_velocity, y_velocity
         if Effect.image == None:
-            self.image = load_image('Attack.png')
+            self.image = load_image('resource\Attack.png')
 
     def draw(self):
         if main.see_right:

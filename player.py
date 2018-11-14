@@ -3,7 +3,6 @@ from pico2d import*
 import game_world
 import random
 import main
-
 from effect import Effect
 from weapon import Weapon
 
@@ -34,11 +33,12 @@ key_event_table = {
     (SDL_KEYUP, SDLK_a, None): LEFT_UP,
     (SDL_KEYUP, SDLK_d, None): RIGHT_UP
 }
-
+weapon = None
 
 class IdleState:
     @staticmethod
     def enter(player, event):
+
         if event == LEFT_DOWN:
             player.x_velocity -= RUN_SPEED_PPS
         elif event == RIGHT_DOWN:
@@ -55,13 +55,12 @@ class IdleState:
             player.y_velocity -= RUN_SPEED_PPS
         elif event == DOWN_UP:
             player.y_velocity += RUN_SPEED_PPS
-        elif event == LMOUSE_DOWN:
-            print("gd")
+
 
     @staticmethod
     def exit(player, event):
         if event == LMOUSE_DOWN:
-            player.weapon_act()
+            player.throw_weapon()
 
     @staticmethod
     def do(player):
@@ -112,10 +111,9 @@ class MoveState:
         if player.x_velocity == 0 and player.y_velocity == 0:
             player.end_timer = get_time()
             player.elapsed_timer = player.end_timer - player.start_timer
-            print(player.elapsed_timer)
             if player.elapsed_timer > 0.1:
                 player.add_event(IdleState)
-
+        # print(player.start_timer, player.end_timer)
 
     @staticmethod
     def draw(player):
@@ -132,19 +130,20 @@ class AttackState:
     def enter(player, event):
 
         if event == LMOUSE_DOWN:
-            player.effect_act()
-            player.weapon_act()
-        elif event == LMOUSE_UP:
-            pass
+            if player.attack_elapsed_timer > 0.3:
+                player.effect_act()
+                player.throw_weapon()
+                player.attack_start_timer = get_time()
+
 
 
 
     @staticmethod
     def exit(player, event):
         pass
-
     @staticmethod
     def do(player):
+
         if main.mousecursor.x > player.x:
             main.see_right = True
         elif main.mousecursor.x < player.x:
@@ -152,7 +151,11 @@ class AttackState:
         player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_Time) % 4
         player.x += player.x_velocity * game_framework.frame_Time
         player.y += player.y_velocity * game_framework.frame_Time
+        player.attack_end_timer = get_time()
+        player.attack_elapsed_timer = player.attack_end_timer - player.attack_start_timer
 
+
+        # print(player.attack_start_timer, player.attack_end_timer)
 
 
 
@@ -180,8 +183,8 @@ next_state_table = {
 
 class Player:
     unit = None
-
-    def __init__(self, x, y, x_velocity=0, y_velocity=0):
+    weapons = []
+    def __init__(self, x, y, x_velocity=0, y_velocity= 0):
         self.x = x
         self.y = y
         self.x_velocity = x_velocity
@@ -194,9 +197,12 @@ class Player:
         self.start_timer = 0
         self.end_timer = 0
         self.elapsed_timer = 0
+        self.attack_start_timer = 0
+        self.attack_end_timer = 0
+        self.attack_elapsed_timer = 0
         self.cur_state.enter(self, None)
         if Player.unit == None:
-            Player.unit = load_image('player_animation.png')
+            Player.unit = load_image('resource\player_animation.png')
 
     def effect_act(self):
         effect = Effect(self.x, self.y, self.x_velocity, self.y_velocity)
@@ -205,11 +211,10 @@ class Player:
     def get_hitbox(self):
         return (self.x - self.hitbox_size / 2), (self.y - self.hitbox_size / 2), (self.x + self.hitbox_size / 2), (self.y + self.hitbox_size / 2)
 
-
-    def weapon_act(self):
-        weapon = Weapon(self.x, self.y, self.x_velocity, self.y_velocity)
-        weapon.set_force(random.randint(3, 4), 3)
-        game_world.add_object(weapon, 1)
+    def throw_weapon(self):
+        Player.weapons = [Weapon(self.x, self.y, self.x_velocity, self.y_velocity) for i in range(1)]
+        # weapon.set_force(random.randint(3, 4), 3)
+        game_world.add_objects(Player.weapons, 1)
 
     def add_event(self, event):
         self.event_que.insert(0, event)
@@ -224,6 +229,7 @@ class Player:
             self.cur_state.exit(self, event)
             self.cur_state = next_state_table[self.cur_state][event]
             self.cur_state.enter(self, event)
+
 
 
     def draw(self):

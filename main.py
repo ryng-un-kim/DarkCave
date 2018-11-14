@@ -1,11 +1,12 @@
 from pico2d import*
 import game_world
 import game_framework
-
+import random
 from mousecursor import MouseCursor
 from player import Player
 from map import Map
 from item import Item
+from enemy_skeleton import Skeleton
 
 
 def collision(a, b):
@@ -32,6 +33,7 @@ def handle_events():
                 see_right = True
             elif event.x < player.x:
                 see_right = False
+
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
                 game_framework.quit()
         else:
@@ -51,35 +53,56 @@ running = True
 player = None
 ground = None
 mousecursor = None
-weapon = None
 items = None
-
-
-
+skeletons = None
 def enter():
-    global player, ground, wall, mousecursor, weapon, items
+    global player, ground, wall, mousecursor, items, skeletons
     player = Player((VIEW_WIDTH / 2), (VIEW_HEIGHT / 2))
     ground = Map()
     mousecursor = MouseCursor(100, 100)
+    skeletons = [Skeleton()]
     items = [Item() for i in range(10)]
     game_world.add_object(ground, 0)
     game_world.add_object(mousecursor, 2)
     game_world.add_objects(items, 1)
     game_world.add_object(player, 1)
-
+    game_world.add_objects(skeletons, 1)
 
 def exit():
     game_world.clear()
 
 
 def update():
+    global skeleton
     for game_object in game_world.all_objects():
         game_object.update()
+
     for item in items:
         if collision(player, item):
             items.remove(item)
             game_world.remove_object(item)
             print('Hit!')
+
+
+    # if collision(player, skeleton):
+       #  print('HP -1 !')
+
+    for weapon in player.weapons:
+        for skeleton in skeletons:
+            if collision(skeleton, weapon):
+                skeleton.hp -= weapon.damage
+                player.weapons.remove(weapon)
+                game_world.remove_object(weapon)
+                print(skeleton.hp)
+                if skeleton.hp == 0:
+                    skeleton.die()
+                    game_world.remove_object(skeleton)
+                    skeletons.remove(skeleton)
+
+
+
+
+
 
 
 def draw():

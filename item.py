@@ -15,7 +15,7 @@ class Item:
         self.y = random.choice(self.randy)
         self.r = 0
         if Item.image == None:
-            Item.image = load_image("Item.png")
+            Item.image = load_image("resource\Item.png")
 
     def get_hitbox(self):
         return self.x - self.size / 2, self.y - self.size / 2, self.x + self.size / 2, self.y + self.size / 2

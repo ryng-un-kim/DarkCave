@@ -9,7 +9,7 @@ class Map:
         self.x = main.VIEW_WIDTH/2
         self.y = main.VIEW_HEIGHT/2
         if Map.image == None:
-            Map.image = load_image('map.png')
+            Map.image = load_image('resource\map.png')
 
     def update(self):
         pass
