@@ -2,7 +2,7 @@ from pico2d import *
 import game_world
 import game_framework
 import player
-import main
+import main_state
 
 TIME_PER_ACTION = 0.2
 ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
@@ -22,7 +22,7 @@ class Effect:
             self.image = load_image('resource\Attack.png')
 
     def draw(self):
-        if main.see_right:
+        if main_state.see_right:
             self.image.clip_draw(int(self.frame) * self.SIZE, self.see_right_frame, 96, 120, self.x + 40, self.y - 10)
         else:
             self.image.clip_draw(int(self.frame) * self.SIZE, self.see_right_frame, 96, 120, self.x - 40, self.y - 10)
@@ -34,7 +34,7 @@ class Effect:
 
         if self.frame > 4:
             game_world.remove_object(self)
-        if main.see_right:
+        if main_state.see_right:
             self.see_right_frame = 240
         else:
             self.see_right_frame = 0

@@ -1,7 +1,7 @@
 from pico2d import*
 import game_framework
 import random
-import main
+import main_state
 
 
 class Item:
@@ -9,8 +9,8 @@ class Item:
 
     def __init__(self):
         self.size = 40
-        self.randx = [n for n in range(500 + self.size, main.VIEW_WIDTH - 64 - self.size, 64)]
-        self.randy = [n for n in range(500 + self.size, main.VIEW_HEIGHT - 64 - self.size, 64)]
+        self.randx = [n for n in range(500 + self.size, main_state.VIEW_WIDTH - 64 - self.size, 64)]
+        self.randy = [n for n in range(500 + self.size, main_state.VIEW_HEIGHT - 64 - self.size, 64)]
         self.x = random.choice(self.randx)
         self.y = random.choice(self.randy)
         self.r = 0

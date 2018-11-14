@@ -2,12 +2,13 @@ from pico2d import *
 import game_world
 import game_framework
 import player
-import main
+import main_state
 
 VIEW_WIDTH = 1024
 VIEW_HEIGHT = 768
+
 PIXEL_PER_METER = (10.0/0.3)  # 10 pixel 30cm
-THROW_SPEED_KMPH = 40.0  # km/hour
+THROW_SPEED_KMPH = 80.0  # km/hour
 THROW_SPEED_MPM = (THROW_SPEED_KMPH * 1000/60)
 THROW_SPEED_MPM = (THROW_SPEED_MPM / 60)
 THROW_SPEED_MPM = (THROW_SPEED_MPM * PIXEL_PER_METER)
@@ -34,7 +35,7 @@ class Weapon:
         self.y_throwvelocity = 0
         self.damage = 0.01 * 100
         self.x_velocity, self.y_velocity = x_velocity, y_velocity
-        if main.mousecursor.x - self.x > 0:
+        if main_state.mousecursor.x - self.x > 0:
             self.dir = 1
         else:     # 마우스 좌우 발사
             self.dir = -1

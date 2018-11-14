@@ -3,7 +3,7 @@ import game_world
 import game_framework
 import random
 from mousecursor import MouseCursor
-from player import Player
+from player import Player, PlayerHealth
 from map import Map
 from item import Item
 from enemy_skeleton import Skeleton
@@ -33,7 +33,6 @@ def handle_events():
                 see_right = True
             elif event.x < player.x:
                 see_right = False
-
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
                 game_framework.quit()
         else:
@@ -55,25 +54,33 @@ ground = None
 mousecursor = None
 items = None
 skeletons = None
+start_timer = 0
+end_timer = 0
+elapsed_timer = 0
+player_health = None
+
 def enter():
-    global player, ground, wall, mousecursor, items, skeletons
+    global player, ground, wall, mousecursor, items, skeletons, start_timer, player_health
     player = Player((VIEW_WIDTH / 2), (VIEW_HEIGHT / 2))
     ground = Map()
+    player_health = PlayerHealth(player.renew_hp)
     mousecursor = MouseCursor(100, 100)
-    skeletons = [Skeleton()]
+    skeletons = [Skeleton() for i in range(10)]
     items = [Item() for i in range(10)]
     game_world.add_object(ground, 0)
     game_world.add_object(mousecursor, 2)
     game_world.add_objects(items, 1)
     game_world.add_object(player, 1)
     game_world.add_objects(skeletons, 1)
+    game_world.add_object(player_health, 2)
 
 def exit():
     game_world.clear()
 
 
 def update():
-    global skeleton
+
+    global start_timer, end_timer, elapsed_timer, player_health
     for game_object in game_world.all_objects():
         game_object.update()
 
@@ -84,25 +91,26 @@ def update():
             print('Hit!')
 
 
-    # if collision(player, skeleton):
-       #  print('HP -1 !')
-
-    for weapon in player.weapons:
-        for skeleton in skeletons:
+    for skeleton in skeletons:
+        for weapon in player.weapons:
             if collision(skeleton, weapon):
                 skeleton.hp -= weapon.damage
-                player.weapons.remove(weapon)
                 game_world.remove_object(weapon)
+                player.weapons.remove(weapon)
                 print(skeleton.hp)
                 if skeleton.hp == 0:
                     skeleton.die()
                     game_world.remove_object(skeleton)
                     skeletons.remove(skeleton)
 
-
-
-
-
+    for skeleton in skeletons:
+        if collision(player, skeleton):
+            elapsed_timer = end_timer - start_timer
+            # print(start_timer, end_timer, elapsed_timer)
+            game_world.remove_object(player_health)
+            player_health = PlayerHealth(player.renew_hp)
+            game_world.add_object(player_health, 2)
+            end_timer = get_time()
 
 
 def draw():

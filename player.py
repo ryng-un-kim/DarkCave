@@ -2,9 +2,10 @@ import game_framework
 from pico2d import*
 import game_world
 import random
-import main
+import main_state
 from effect import Effect
 from weapon import Weapon
+import enemy_skeleton
 
 PIXEL_PER_METER = (10.0/0.3)  # 10 pixel 30cm
 RUN_SPEED_KMPH = 15.0  # km/hour
@@ -16,6 +17,7 @@ RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
 TIME_PER_ACTION = 2
 ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
 FRAMES_PER_ACTION = 8
+
 
 # Player Event
 RIGHT_DOWN, LEFT_DOWN, UP_DOWN, DOWN_DOWN, RIGHT_UP, LEFT_UP, UP_UP, \
@@ -68,7 +70,12 @@ class IdleState:
 
     @staticmethod
     def draw(player):
-        if main.see_right:
+        for skeleton in main_state.skeletons:
+            if main_state.collision(player, skeleton):
+                if main_state.elapsed_timer > 1:
+                    player.damage_collision(skeleton.damage)
+                player.font.draw(player.x - 20, player.y + random.randint(40, 45), 'Fear', (255, 0, 0))
+        if main_state.see_right:
             player.unit.clip_draw(int(player.frame) * player.size, 128, 64, 64, player.x, player.y)
         else:
             player.unit.clip_draw(int(player.frame) * player.size, 196, 64, 64, player.x, player.y)
@@ -101,10 +108,10 @@ class MoveState:
 
     @staticmethod
     def do(player):
-        if main.mousecursor.x > player.x:
-            main.see_right = True
-        elif main.mousecursor.x < player.x:
-            main.see_right = False
+        if main_state.mousecursor.x > player.x:
+            main_state.see_right = True
+        elif main_state.mousecursor.x < player.x:
+            main_state.see_right = False
         player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_Time) % 4
         player.x += player.x_velocity * game_framework.frame_Time
         player.y += player.y_velocity * game_framework.frame_Time
@@ -117,7 +124,12 @@ class MoveState:
 
     @staticmethod
     def draw(player):
-        if main.see_right:
+        for skeleton in main_state.skeletons:
+            if main_state.collision(player, skeleton):
+                if main_state.elapsed_timer > 1:
+                    player.damage_collision(skeleton.damage)
+                player.font.draw(player.x - 20, player.y + random.randint(40, 45), 'Fear', (255, 0, 0))
+        if main_state.see_right:
             player.unit.clip_draw(int(player.frame) * player.size, 0, 64, 64, player.x, player.y)
         else:
             player.unit.clip_draw(int(player.frame) * player.size, 64, 64, 64, player.x, player.y)
@@ -144,10 +156,10 @@ class AttackState:
     @staticmethod
     def do(player):
 
-        if main.mousecursor.x > player.x:
-            main.see_right = True
-        elif main.mousecursor.x < player.x:
-            main.see_right = False
+        if main_state.mousecursor.x > player.x:
+            main_state.see_right = True
+        elif main_state.mousecursor.x < player.x:
+            main_state.see_right = False
         player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_Time) % 4
         player.x += player.x_velocity * game_framework.frame_Time
         player.y += player.y_velocity * game_framework.frame_Time
@@ -161,7 +173,13 @@ class AttackState:
 
     @staticmethod
     def draw(player):
-        if main.see_right:
+        for skeleton in main_state.skeletons:
+            if main_state.collision(player, skeleton):
+                if main_state.elapsed_timer > 1:
+                    player.damage_collision(skeleton.damage)
+                player.font.draw(player.x - 20, player.y + random.randint(40, 45), 'Fear', (255, 0, 0))
+
+        if main_state.see_right:
             player.unit.clip_draw(int(player.frame) * player.size, 0, 64, 64, player.x, player.y)
         else:
             player.unit.clip_draw(int(player.frame) * player.size, 64, 64, 64, player.x, player.y)
@@ -184,14 +202,17 @@ next_state_table = {
 class Player:
     unit = None
     weapons = []
-    def __init__(self, x, y, x_velocity=0, y_velocity= 0):
+    def __init__(self, x, y, x_velocity=0, y_velocity= 0, renew_hp=0.2*100):
         self.x = x
         self.y = y
+        self.x_acceleration = 10
+        self.y_acceleration = 0
         self.x_velocity = x_velocity
         self.y_velocity = y_velocity
         self.size = 64
         self.hitbox_size = 30
         self.frame = 0
+        self.font = load_font('ENCR10B.TTF', 16)
         self.event_que = []
         self.cur_state = IdleState
         self.start_timer = 0
@@ -200,6 +221,8 @@ class Player:
         self.attack_start_timer = 0
         self.attack_end_timer = 0
         self.attack_elapsed_timer = 0
+        self.hp = 0.2 * 100
+        self.renew_hp = renew_hp
         self.cur_state.enter(self, None)
         if Player.unit == None:
             Player.unit = load_image('resource\player_animation.png')
@@ -212,17 +235,21 @@ class Player:
         return (self.x - self.hitbox_size / 2), (self.y - self.hitbox_size / 2), (self.x + self.hitbox_size / 2), (self.y + self.hitbox_size / 2)
 
     def throw_weapon(self):
-        Player.weapons = [Weapon(self.x, self.y, self.x_velocity, self.y_velocity) for i in range(1)]
+        self.weapons = [Weapon(self.x, self.y, self.x_velocity, self.y_velocity) for i in range(1)]
         # weapon.set_force(random.randint(3, 4), 3)
-        game_world.add_objects(Player.weapons, 1)
+        game_world.add_objects(self.weapons, 1)
 
     def add_event(self, event):
         self.event_que.insert(0, event)
 
-    def stop(self):
-        print('Hit!')
+    def damage_collision(self, skeleton_damage):
+        self.renew_hp -= skeleton_damage
+        main_state.start_timer = get_time()
+        # print(self.renew_hp, self.hp)
+
 
     def update(self):
+        # print(self.renew_hp)
         self.cur_state.do(self)
         if len(self.event_que) > 0:
             event = self.event_que.pop()
@@ -236,6 +263,7 @@ class Player:
         self.cur_state.draw(self)
         draw_rectangle(*self.get_hitbox())
 
+
     def handle_event(self, event):
         if (event.type, event.key, event.button) in key_event_table:
             key_event = key_event_table[(event.type, event.key, event.button)]
@@ -246,4 +274,22 @@ class Player:
 
 
 
+class PlayerHealth:
+    image = None
+    def __init__(self, renew_hp):
+        self.x=200
+        self.y=764/8
+        self.renew_hp = renew_hp
+        if PlayerHealth.image == None:
+            PlayerHealth.image = load_image('resource\health.png')
+        self.health = self.renew_hp * 128/ 20
+
+
+    def update(self):
+        self.health = self.renew_hp * 128 / 20
+        print(self.renew_hp)
+
+
+    def draw(self):
+        self.image.clip_draw(0,0,int(self.health),16,self.x-(128-int(self.health))/2 ,self.y)
 
