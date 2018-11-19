@@ -2,6 +2,8 @@ from pico2d import*
 import game_world
 import game_framework
 import random
+import title_state
+import start_state
 from mousecursor import MouseCursor
 from player import Player, PlayerHealth
 from map import Map
@@ -22,7 +24,7 @@ def collision(a, b):
 
 
 def handle_events():
-    global see_right
+    global see_right, skeletons, items
     events = get_events()
     for event in events:
         if event.type == SDL_QUIT:
@@ -34,9 +36,15 @@ def handle_events():
             elif event.x < player.x:
                 see_right = False
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
-                game_framework.quit()
+            del (skeletons)
+            del (items)
+            game_framework.change_state(title_state)
+
         else:
             player.handle_event(event)
+
+
+
 
 
 name = "MainState"
@@ -74,13 +82,19 @@ def enter():
     game_world.add_objects(skeletons, 1)
     game_world.add_object(player_health, 2)
 
+
 def exit():
     game_world.clear()
 
 
 def update():
-
     global start_timer, end_timer, elapsed_timer, player_health
+
+    if player.renew_hp <= 0:
+        player.renew_hp = 0.2 * 100
+        game_framework.change_state(title_state)
+
+
     for game_object in game_world.all_objects():
         game_object.update()
 
@@ -90,14 +104,12 @@ def update():
             game_world.remove_object(item)
             print('Hit!')
 
-
     for skeleton in skeletons:
         for weapon in player.weapons:
             if collision(skeleton, weapon):
                 skeleton.hp -= weapon.damage
                 game_world.remove_object(weapon)
                 player.weapons.remove(weapon)
-                print(skeleton.hp)
                 if skeleton.hp == 0:
                     skeleton.die()
                     game_world.remove_object(skeleton)

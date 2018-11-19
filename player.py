@@ -3,6 +3,7 @@ from pico2d import*
 import game_world
 import random
 import main_state
+import start_state
 from effect import Effect
 from weapon import Weapon
 import enemy_skeleton
@@ -155,7 +156,6 @@ class AttackState:
         pass
     @staticmethod
     def do(player):
-
         if main_state.mousecursor.x > player.x:
             main_state.see_right = True
         elif main_state.mousecursor.x < player.x:
@@ -193,7 +193,7 @@ next_state_table = {
                 IdleState: IdleState, UP_DOWN: MoveState, DOWN_DOWN: MoveState, UP_UP: MoveState, DOWN_UP: MoveState,
                 },
     AttackState: {LMOUSE_DOWN: AttackState, LMOUSE_UP: AttackState, RIGHT_DOWN: MoveState, LEFT_DOWN: MoveState, RIGHT_UP: MoveState, LEFT_UP: MoveState,
-                  IdleState: IdleState, UP_DOWN: MoveState, DOWN_DOWN: MoveState, UP_UP: MoveState, DOWN_UP: MoveState
+                  IdleState: IdleState, UP_DOWN: MoveState, DOWN_DOWN: MoveState, UP_UP: MoveState, DOWN_UP: MoveState,
 
     }
 
@@ -268,6 +268,8 @@ class Player:
         if (event.type, event.key, event.button) in key_event_table:
             key_event = key_event_table[(event.type, event.key, event.button)]
             self.add_event(key_event)
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
+            game_framework.change_state(title_state)
 
 
 
@@ -287,7 +289,7 @@ class PlayerHealth:
 
     def update(self):
         self.health = self.renew_hp * 128 / 20
-        print(self.renew_hp)
+        # print(self.renew_hp)
 
 
     def draw(self):
