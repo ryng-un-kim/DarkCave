@@ -31,6 +31,7 @@ def handle_events():
                 game_framework.quit()
             elif (event.type, event.button) == (SDL_MOUSEBUTTONDOWN, SDL_BUTTON_LEFT):
                 game_framework.change_state(main_state)
+
 def draw():
     global frame
     clear_canvas()

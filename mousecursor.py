@@ -16,10 +16,15 @@ class MouseCursor:
         self.x = x
         self.y = y
 
+    def get_hitbox(self):
+        return self.x - 8, self.y, self.x, self.y + 8
+
+
     def update(self):
         self.image.x = self.x
         self.image.y = self.y
 
     def draw(self):
         self.image.draw(self.image.x, self.image.y)
+        draw_rectangle(*self.get_hitbox())
 

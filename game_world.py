@@ -1,13 +1,13 @@
 # Layer 0: Background Objects
 # Layer 1: Foreground Objects
 
-objects = [[],[],[]]
+objects = [[],[],[],[],[]]
 
 
 def add_object(o, layer):
     global objects
     if len(objects) == 0:
-        objects = [[], [], []]
+        objects = [[],[],[],[],[]]
     print(len(objects))
     objects[layer].append(o)
 

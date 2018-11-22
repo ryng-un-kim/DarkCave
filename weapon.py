@@ -8,7 +8,7 @@ VIEW_WIDTH = 1024
 VIEW_HEIGHT = 768
 
 PIXEL_PER_METER = (10.0/0.3)  # 10 pixel 30cm
-THROW_SPEED_KMPH = 70.0  # km/hour
+THROW_SPEED_KMPH = 120.0  # km/hour
 THROW_SPEED_MPM = (THROW_SPEED_KMPH * 1000/60)
 THROW_SPEED_MPM = (THROW_SPEED_MPM / 60)
 THROW_SPEED_MPM = (THROW_SPEED_MPM * PIXEL_PER_METER)
@@ -32,16 +32,21 @@ class Weapon:
         self.y_acceleration = 9.8  # 중력가속도
         self.frictional_force = 1   # 마찰력
         self.dir = 1    # 방향
-        self.y_throwvelocity = 0
-        self.damage = 0.01 * 100
-        self.x_velocity, self.y_velocity = x_velocity, y_velocity
-        if main_state.mousecursor.x - self.x > 0:
+        if main_state.mousecursor.x - (self.x_init - main_state.background.window_left) > 0:
             self.dir = 1
         else:     # 마우스 좌우 발사
             self.dir = -1
-        self.x_throwvelocity = THROW_SPEED_MPM + (self.dir * x_velocity) # 돌 던지는 속도
+        self.y_throwvelocity = 0
+        self.damage = 0.01 * 100
+        self.x_velocity, self.y_velocity = x_velocity, y_velocity
+        self.x_throwvelocity = THROW_SPEED_MPM + (self.dir * x_velocity)
+
         if Weapon.unit == None:
             Weapon.unit = load_image('resource\weapon.png')
+
+    def set_background(self, bg):
+        self.bg = bg
+
 
     def set_force(self, force, mass):
         self.force = force
@@ -55,7 +60,9 @@ class Weapon:
         self.x_throwvelocity += self.x_acceleration     # 던지기 직전 가속도
 
     def update(self):
+        print(self.dir)
         self.x_acceleration = 0        # 던진 후 가속도
+
         if self.dir == 1:
             self.x += self.x_throwvelocity * game_framework.frame_Time
         elif self.dir == -1:
@@ -78,17 +85,16 @@ class Weapon:
             self.x_velocity = 0
         self.end_timer = get_time()
         self.elapsed_time = self.end_timer - self.start_timer
-        if self.x > VIEW_WIDTH - 64 - 4:
-            self.x_throwvelocity *= -1
-            self.x_velocity *= -0.5
+
         if self.elapsed_time > 1:
             game_world.remove_object(self)
 
     def get_hitbox(self):
-        return self.x - 5, self.y - 5, self.x + 10, self.y + 10
+        return self.x - self.bg.window_left- 5, self.y - self.bg.window_bottom- 5, \
+               self.x - self.bg.window_left+ 10, self.y - self.bg.window_bottom+ 10
 
     def draw(self):
-        self.unit.clip_draw(self.frame * self.size, 0, 32, 32, self.x, self.y)
+        self.unit.clip_draw(self.frame * self.size, 0, 32, 32, self.x - self.bg.window_left , self.y - self.bg.window_bottom)
         draw_rectangle(*self.get_hitbox())
 
 
