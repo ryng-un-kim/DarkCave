@@ -36,10 +36,6 @@ def handle_events():
             game_framework.quit()
         elif event.type == SDL_MOUSEMOTION:
             mousecursor.position(x=event.x, y=VIEW_HEIGHT - 1 - event.y)
-            if event.x > player.x:
-                see_right = True
-            elif event.x < player.x:
-                see_right = False
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             del (skeletons)
             del (items)
@@ -108,10 +104,10 @@ def enter():
     game_world.add_object(background, 0)
     game_world.add_object(map, 2)
 
-
-
+    player_fear.set_background(background)
     player.set_background(background)
     background.set_center_object(player)
+    player_fear.set_position(player)
 
     for material_stone in material_stones:
         material_stone.set_background(background)
@@ -138,9 +134,11 @@ def update():
 
     for item in items:
         if collision(player, item):
-            items.remove(item)
-            game_world.remove_object(item)
-            print('Hit!')
+            if player_health.renew_hp < 20:
+                items.remove(item)
+                game_world.remove_object(item)
+                player_health.renew_hp += 1
+                print('Hit!')
         elif collision(mousecursor, item):
             if click:
                 item.drag(mousecursor)
@@ -151,8 +149,8 @@ def update():
                 skeleton.hp -= weapon.damage
                 game_world.remove_object(weapon)
                 player.weapons.remove(weapon)
+                skeleton.die()
                 if skeleton.hp == 0:
-                    skeleton.die()
                     game_world.remove_object(skeleton)
                     skeletons.remove(skeleton)
 
@@ -164,6 +162,8 @@ def update():
             player_health = PlayerHealth(player.renew_hp)
             game_world.add_object(player_health, 2)
             end_timer = get_time()
+        elif collision(player_fear, skeleton):
+            player_fear.skeleton_collision()
 
         for material_stone in material_stones:
             if collision(player, material_stone):

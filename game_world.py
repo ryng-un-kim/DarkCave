@@ -8,7 +8,7 @@ def add_object(o, layer):
     global objects
     if len(objects) == 0:
         objects = [[],[],[],[],[]]
-    print(len(objects))
+    # print(len(objects))
     objects[layer].append(o)
 
 

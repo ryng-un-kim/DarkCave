@@ -71,6 +71,10 @@ class IdleState:
             main_state.click = False
     @staticmethod
     def do(player):
+        if main_state.mousecursor.x > player.x - player.bg.window_left:
+            main_state.see_right = True
+        elif main_state.mousecursor.x < player.x - player.bg.window_left:
+            main_state.see_right = False
         player.x = clamp(0 + 48, player.x, player.bg.w - 48)
         player.y = clamp(0 + 200, player.y, player.bg.h - 48)
         player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_Time) % 4
@@ -120,7 +124,7 @@ class MoveState:
         player.y = clamp(0 + 200, player.y, player.bg.h - 48)
         if main_state.mousecursor.x > player.x - player.bg.window_left:
             main_state.see_right = True
-        elif main_state.mousecursor.x < player.x - player.bg.window_bottom:
+        elif main_state.mousecursor.x < player.x - player.bg.window_left:
             main_state.see_right = False
         player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_Time) % 4
         player.x += player.x_velocity * game_framework.frame_Time
@@ -304,16 +308,20 @@ class Player:
 
 class PlayerHealth:
     image = None
-    def __init__(self, renew_hp):
+    def __init__(self, renew_hp, stone_count= 0):
         self.x=120
         self.y=764/14
         self.renew_hp = renew_hp
-        self.stone_count = 0
+        self.stone_count = stone_count
         if PlayerHealth.image == None:
             PlayerHealth.image = load_image('resource\health.png')
         self.health = self.renew_hp * 128/ 20
         self.font = load_font('ENCR10B.TTF', 20)
 
+    def damage_fear(self):
+        self.renew_hp -= 1
+        main_state.start_timer = get_time()
+        print(self.renew_hp)
 
     def set_count(self):
         self.stone_count += 1

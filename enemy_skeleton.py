@@ -7,7 +7,7 @@ from BehaviorTree import BehaviorTree, SelectorNode, SequenceNode, LeafNode
 
 
 PIXEL_PER_METER = (10.0/0.3)  # 10 pixel 30cm
-RUN_SPEED_KMPH = 2.0  # km/hour
+RUN_SPEED_KMPH = 8.0  # km/hour
 RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000/60)
 RUN_SPEED_MPS = (RUN_SPEED_MPM / 60)
 RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
@@ -23,9 +23,14 @@ class Skeleton:
     def __init__(self):
         self.x, self.y = random.randint(300, 1600), random.randint(300, 1600)
         self.frame = 0
+        self.font_frame = 40
         self.timer = 1.0
+        self.collision_start_timer = get_time()
+        self.collision_end_timer = 0
         self.dir = random.random() * 2 * math.pi  # random moving direction
         self.speed = 0
+        self.print_font = 0
+        self.font = load_font('ENCR10B.TTF', 18)
         self.hp = 0.1 * 100
         self.damage = 0.01 * 100
         self.build_behavior_tree()
@@ -55,14 +60,24 @@ class Skeleton:
         self.y += self.speed * math.sin(self.dir) * game_framework.frame_Time
         self.x = clamp(50, self.x, self.bg.w - 50)
         self.y = clamp(50, self.y, self.bg.h - 50)
+        if self.print_font == 1:
+            self.font_frame +=2
+            if self.font_frame > 60:
+                self.print_font = 0
+                self.font_frame = 40
+
 
     def die(self):
-        pass
+        if self.print_font == 0:
+            self.print_font = 1
 
     def get_hitbox(self):
         return self.x - self.bg.window_left - 12, self.y - self.bg.window_bottom - 32, \
                self.x - self.bg.window_left + 12, self.y - self.bg.window_bottom + 32
 
+
     def draw(self):
+        if self.print_font == 1:
+            self.font.draw(self.x - 20 - self.bg.window_left, self.y - self.bg.window_bottom + self.font_frame, 'Hit!', (100, 200, 100))
         self.image.clip_draw(int(self.frame) * 96, 768-96, 96, 64, self.x - self.bg.window_left, self.y - self.bg.window_bottom)
         draw_rectangle(*self.get_hitbox())

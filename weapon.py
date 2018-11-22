@@ -3,7 +3,7 @@ import game_world
 import game_framework
 import player
 import main_state
-
+import random
 VIEW_WIDTH = 1024
 VIEW_HEIGHT = 768
 
@@ -60,7 +60,6 @@ class Weapon:
         self.x_throwvelocity += self.x_acceleration     # 던지기 직전 가속도
 
     def update(self):
-        print(self.dir)
         self.x_acceleration = 0        # 던진 후 가속도
 
         if self.dir == 1:
