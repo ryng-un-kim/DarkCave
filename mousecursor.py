@@ -1,7 +1,8 @@
 from pico2d import *
 import game_framework
 
-
+VIEW_WIDTH = 1024
+VIEW_HEIGHT = 768
 class MouseCursor:
     image = None
 
@@ -11,6 +12,7 @@ class MouseCursor:
         self.y = y
         if MouseCursor.image == None:
             MouseCursor.image = load_image("resource\mouse3.png")
+
 
     def position(self, x=0, y=0):
         self.x = x
@@ -27,4 +29,9 @@ class MouseCursor:
     def draw(self):
         self.image.draw(self.image.x, self.image.y)
         draw_rectangle(*self.get_hitbox())
+
+
+
+
+
 

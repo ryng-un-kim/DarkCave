@@ -7,15 +7,19 @@ FRAMES_PER_ACTION = 6
 
 class Bonfire:
     image = None
-    def __init__(self):
-        self.x = 400
-        self.y = 400
+    def __init__(self, x = 400, y = 400):
+        self.x = x
+        self.y = y
         self.frame = 0
         if Bonfire.image == None:
             Bonfire.image = load_image('resource\Bonfire.png')
 
     def set_background(self, bg):
         self.bg = bg
+
+    def drag(self, cursor):
+        self.x = cursor.x - 8 + self.bg.window_left
+        self.y = cursor.y + 8 + self.bg.window_bottom
 
     def update(self):
         self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_Time)%6

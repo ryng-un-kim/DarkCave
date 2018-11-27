@@ -7,7 +7,7 @@ import start_state
 from effect import Effect
 from weapon import Weapon
 import enemy_skeleton
-
+import mousecursor
 
 
 PIXEL_PER_METER = (10.0/0.3)  # 10 pixel 30cm
@@ -134,7 +134,6 @@ class MoveState:
             player.elapsed_timer = player.end_timer - player.start_timer
             if player.elapsed_timer > 0.1:
                 player.add_event(IdleState)
-        # print(player.start_timer, player.end_timer)
 
     @staticmethod
     def draw(player):
@@ -181,7 +180,7 @@ class AttackState:
         player.attack_elapsed_timer = player.attack_end_timer - player.attack_start_timer
 
 
-        # print(player.attack_start_timer, player.attack_end_timer)
+
 
 
 
@@ -272,13 +271,13 @@ class Player:
         main_state.start_timer = get_time()
         # print(self.renew_hp, self.hp)
 
+
     def set_background(self, bg):
         self.bg = bg
         self.x = self.bg.w // 2
         self.y = self.bg.h // 2
 
     def update(self):
-        # print(self.renew_hp)
         self.cur_state.do(self)
         if len(self.event_que) > 0:
             event = self.event_que.pop()
@@ -298,8 +297,7 @@ class Player:
         if (event.type, event.key, event.button) in key_event_table:
             key_event = key_event_table[(event.type, event.key, event.button)]
             self.add_event(key_event)
-        elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
-            game_framework.change_state(title_state)
+
 
 
 
@@ -345,5 +343,4 @@ class PlayerHealth:
     def draw(self):
         self.image.clip_draw(0,0,int(self.health),16,self.x-(128-int(self.health))/2 ,self.y)
         self.font.draw(85, 764 / 10, 'Health       Fear    Temperature    Food       Water', (255, 255, 255))
-        self.font.draw(800, 200, 'Material:%3d' % self.material_counter, (255, 255, 255))
 
