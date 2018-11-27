@@ -20,7 +20,7 @@ class PlayerFear:
     def skeleton_collision(self):
         self.end_timer = get_time()
         self.elapsed_timer = self.end_timer - self.start_timer
-        if self.elapsed_timer > 2:
+        if self.elapsed_timer > 2 and self.fear_gauge != 0:
             self.fear_gauge -= 1
             self.start_timer = get_time()
 
@@ -40,8 +40,16 @@ class PlayerFear:
         main_state.end_timer = get_time()
         main_state.elapsed_timer = main_state.end_timer - main_state.start_timer
 
+    def recovery(self):
+        self.end_timer = get_time()
+        self.elapsed_timer = self.end_timer - self.start_timer
+        if self.fear_gauge < 20 and self.elapsed_timer > 1.5:
+            self.fear_gauge += 1
+            self.start_timer = get_time()
+
+
     def update(self):
-        self.renew_fear_gauge = 0 # self.fear_gauge * 128 / 20
+        self.renew_fear_gauge = self.fear_gauge * 128 / 20
         if self.renew_fear_gauge == 0:
             self.damage_fear()
             if main_state.elapsed_timer > 5:

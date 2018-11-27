@@ -308,23 +308,34 @@ class Player:
 
 class PlayerHealth:
     image = None
-    def __init__(self, renew_hp, stone_count= 0):
+    def __init__(self, renew_hp, material_counter= 0):
         self.x=120
         self.y=764/14
         self.renew_hp = renew_hp
-        self.stone_count = stone_count
+        self.material_counter = material_counter
         if PlayerHealth.image == None:
             PlayerHealth.image = load_image('resource\health.png')
         self.health = self.renew_hp * 128/ 20
         self.font = load_font('ENCR10B.TTF', 20)
 
+    def damage_food(self):
+        self.renew_hp -= 1
+        main_state.start_timer = get_time()
+
+    def damage_water(self):
+        self.renew_hp -= 1
+        main_state.start_timer = get_time()
+
+    def damage_temp(self):
+        self.renew_hp -= 1
+        main_state.start_timer = get_time()
+
     def damage_fear(self):
         self.renew_hp -= 1
         main_state.start_timer = get_time()
-        print(self.renew_hp)
 
     def set_count(self):
-        self.stone_count += 1
+        self.material_counter += 1
 
     def update(self):
         self.health = self.renew_hp * 128 / 20
@@ -334,5 +345,5 @@ class PlayerHealth:
     def draw(self):
         self.image.clip_draw(0,0,int(self.health),16,self.x-(128-int(self.health))/2 ,self.y)
         self.font.draw(85, 764 / 10, 'Health       Fear    Temperature    Food       Water', (255, 255, 255))
-        self.font.draw(800, 200, '%3d' % self.stone_count, (255, 255, 255))
+        self.font.draw(800, 200, 'Material:%3d' % self.material_counter, (255, 255, 255))
 

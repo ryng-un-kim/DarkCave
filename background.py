@@ -11,6 +11,7 @@ class FixedBackground:
         self.w = self.image.w
         self.h = self.image.h
 
+
     def set_center_object(self, player):
         self.center_object = player
 

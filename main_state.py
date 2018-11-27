@@ -5,6 +5,7 @@ import random
 import title_state
 import start_state
 import inventory_state
+import loading_state
 from mousecursor import MouseCursor
 from player import Player, PlayerHealth
 from map import Map
@@ -16,6 +17,11 @@ from water_bar import PlayerWater as Water
 from food_bar import PlayerFood as Food
 from temperature_bar import PlayerTemperature as Temperature
 from material import MaterialStone, MaterialWood
+from darkness import Darkness
+from bonfire import Bonfire
+from light import Light
+from cave_door import CaveDoor
+
 def collision(a, b):
     left_a, bot_a, right_a, top_a = a.get_hitbox()
     left_b, bot_b, right_b, top_b = b.get_hitbox()
@@ -41,7 +47,7 @@ def handle_events():
             del (items)
             game_framework.change_state(title_state)
         elif event.type == SDL_KEYDOWN and event.key == SDLK_i:
-            inventory.open()
+            game_framework.change_state(loading_state)
         else:
             player.handle_event(event)
 
@@ -72,9 +78,16 @@ player_temperature = None
 draging = False
 material_stones = None
 material_woods = None
+darkness = None
+bonfire = None
+light = None
+cave_door = None
+
+def get_player():
+    return player
 
 def enter():
-    global material_woods, material_stones, inventory, player_fear, player_water, \
+    global cave_door, light, bonfire, darkness, material_woods, material_stones, inventory, player_fear, player_water, \
         player_food, player_temperature, player, background, \
         wall, mousecursor, items, skeletons, start_timer, player_health, map
     player = Player((VIEW_WIDTH / 2), (VIEW_HEIGHT / 2))
@@ -84,16 +97,23 @@ def enter():
     player_food = Food(player_health.x, player_health.y)
     player_water = Water(player_health.x, player_health.y)
     mousecursor = MouseCursor(100, 100)
-    material_stones = [MaterialStone() for i in range(10)]
-    material_woods = [MaterialWood() for i in range(10)]
-    skeletons = [Skeleton() for i in range(10)]
-    items = [Item() for i in range(10)]
+    material_stones = [MaterialStone() for i in range(1, 3)]
+    material_woods = [MaterialWood() for i in range(1, 3)]
+    skeletons = [Skeleton() for i in range(1, 5)]
+    items = [Item() for i in range(random.randint(1, 5))]
     background = Background()
     map = Map()
+    darkness = Darkness()
+    bonfire = Bonfire()
+    light = Light(bonfire.x, bonfire.y)
+    cave_door = CaveDoor(background.w - 50, background.h/2 + 200)
+
+    game_world.add_object(cave_door, 1)
     game_world.add_objects(material_woods, 1)
     game_world.add_objects(material_stones, 1)
     game_world.add_object(mousecursor, 4)
     game_world.add_objects(items, 1)
+    game_world.add_object(bonfire, 1)
     game_world.add_object(player, 1)
     game_world.add_objects(skeletons, 1)
     game_world.add_object(player_health, 3)
@@ -103,11 +123,18 @@ def enter():
     game_world.add_object(player_temperature, 3)
     game_world.add_object(background, 0)
     game_world.add_object(map, 2)
+    game_world.add_object(darkness, 2)
+    game_world.add_object(light, 2)
 
+    cave_door.set_background(background)
+    bonfire.set_background(background)
+    light.set_background(background)
+    darkness.set_background(background)
     player_fear.set_background(background)
     player.set_background(background)
     background.set_center_object(player)
     player_fear.set_position(player)
+
 
     for material_stone in material_stones:
         material_stone.set_background(background)
@@ -123,7 +150,7 @@ def exit():
 
 
 def update():
-    global start_timer, end_timer, elapsed_timer, player_health, draging
+    global start_timer, end_timer, elapsed_timer, player_health
 
     if player.renew_hp <= 0:
         player.renew_hp = 0.2 * 100
@@ -138,6 +165,9 @@ def update():
                 items.remove(item)
                 game_world.remove_object(item)
                 player_health.renew_hp += 1
+            if player_food.food_gauge < 20:
+                game_world.remove_object(item)
+                player_food.food_gauge += 1
                 print('Hit!')
         elif collision(mousecursor, item):
             if click:
@@ -149,13 +179,15 @@ def update():
                 skeleton.hp -= weapon.damage
                 game_world.remove_object(weapon)
                 player.weapons.remove(weapon)
-                skeleton.die()
+                skeleton.hit()
                 if skeleton.hp == 0:
                     game_world.remove_object(skeleton)
                     skeletons.remove(skeleton)
 
+
     for skeleton in skeletons:
         if collision(player, skeleton):
+            skeleton.attack()
             elapsed_timer = end_timer - start_timer
             # print(start_timer, end_timer, elapsed_timer)
             game_world.remove_object(player_health)
@@ -179,6 +211,15 @@ def update():
                 # player.material_stone_count(material_stone)
                 player_health.set_count()
 
+    if collision(player, light):
+        player_fear.recovery()
+        player_temperature.recovery()
+
+    if collision(player, cave_door):
+        game_framework.change_state(loading_state)
+
+
+
 
 def draw():
     clear_canvas()
@@ -188,6 +229,7 @@ def draw():
 
 def pause():
     pass
+
 def resume():
     pass
 
