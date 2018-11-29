@@ -11,6 +11,9 @@ class Bonfire:
         self.x = x
         self.y = y
         self.frame = 0
+        self.create_sound = load_wav('resource\create_bonfire.wav')
+        self.create_sound.set_volume(32)
+        self.create_sound.play()
         if Bonfire.image == None:
             Bonfire.image = load_image('resource\Bonfire.png')
 

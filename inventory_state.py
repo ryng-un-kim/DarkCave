@@ -6,6 +6,7 @@ import game_world
 import player
 from inventory import Inventory
 from material import IvenMaterialStone, InvenMaterialWood
+
 VIEW_WIDTH = 1024
 VIEW_HEIGHT = 768
 
@@ -13,6 +14,7 @@ name = 'TutorialState'
 inventory = None
 material_stone = None
 material_wood = None
+
 
 def enter():
     global inventory, material_wood, material_stone
@@ -24,12 +26,11 @@ def enter():
     game_world.add_object(material_wood, 2)
 
 
-
-
 def exit():
     game_world.remove_object(inventory)
     game_world.remove_object(material_stone)
     game_world.remove_object(material_wood)
+
 
 def resume():
     pass
@@ -54,8 +55,8 @@ def draw():
     material_wood.draw()
     material_stone.draw()
     main_state.mousecursor.draw()
-
     update_canvas()
+
 
 def handle_events():
     events = get_events()

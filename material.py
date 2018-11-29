@@ -6,13 +6,15 @@ class MaterialStone:
     image = None
 
     def __init__(self):
-        self.x = random.randint(100, 1600)
-        self.y = random.randint(200, 900)
+        self.x = random.randint(100, 1500)
+        self.y = random.randint(200, 950)
         self.font = load_font('ENCR10B.TTF', 16)
         self.count = 0
         self.stone_counter = 0
         if MaterialStone.image == None:
             MaterialStone.image = load_image('resource\stone.png')
+
+
 
     def set_background(self, bg):
         self.bg = bg
@@ -57,7 +59,7 @@ class MaterialWood:
     image = None
 
     def __init__(self):
-        self.x = random.randint(100, 1600)
+        self.x = random.randint(100, 1500)
         self.y = random.randint(200, 900)
         self.font = load_font('ENCR10B.TTF', 16)
         if MaterialWood.image == None:

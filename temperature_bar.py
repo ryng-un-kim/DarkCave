@@ -4,13 +4,11 @@ import main_state
 
 class PlayerTemperature:
     image = None
-
     def __init__(self, x, y):
-        self.x = x+ 280
+        self.x = x + 280
         self.y = y
         self.frame = 0
-        self.temp_gauge = 20
-        self.renew_temp_gauge = self.temp_gauge * 128 / 20
+        self.renew_temp_gauge = main_state.temp_gauge * 128 / 20
         self.start_timer = get_time()
         if PlayerTemperature.image == None:
             PlayerTemperature.image = load_image('resource\Temperature.png')
@@ -22,20 +20,20 @@ class PlayerTemperature:
     def recovery(self):
         self.end_timer = get_time()
         self.elapsed_timer = self.end_timer - self.start_timer
-        if self.temp_gauge < 20 and self.elapsed_timer > 3:
-            self.temp_gauge += 1
+        if main_state.temp_gauge < 20 and self.elapsed_timer > 2:
+            main_state.temp_gauge += 1
             self.start_timer = get_time()
 
     def update(self):
-        self.renew_temp_gauge = self.temp_gauge * 128 / 20
+        self.renew_temp_gauge = main_state.temp_gauge * 128 / 20
         self.end_timer = get_time()
         self.elapsed_timer = self.end_timer - self.start_timer
-        if self.elapsed_timer > 14 and self.temp_gauge != 0:
-            self.temp_gauge -= 1
+        if self.elapsed_timer > 12 and main_state.temp_gauge != 0:
+            main_state.temp_gauge -= 1
             self.start_timer = get_time()
         if self.renew_temp_gauge == 0:
             self.damage_temp()
-            if main_state.elapsed_timer > 7:
+            if main_state.elapsed_timer > 6:
                 main_state.player_health.damage_temp()
 
     def draw(self):

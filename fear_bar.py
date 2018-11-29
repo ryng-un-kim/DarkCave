@@ -7,21 +7,20 @@ class PlayerFear:
     image = None
 
     def __init__(self, x, y):
-        self.x = x+ 140
+        self.x = x + 140
         self.y = y
         self.frame = 0
-        self.fear_gauge = 20
         self.start_timer = get_time()
         self.font = load_font('ENCR10B.TTF', 18)
-        self.renew_fear_gauge = self.fear_gauge * 128 / 20
+        self.renew_fear_gauge = main_state.fear_gauge * 128 / 20
         if PlayerFear.image == None:
             PlayerFear.image = load_image('resource\Fear.png')
 
     def skeleton_collision(self):
         self.end_timer = get_time()
         self.elapsed_timer = self.end_timer - self.start_timer
-        if self.elapsed_timer > 2 and self.fear_gauge != 0:
-            self.fear_gauge -= 1
+        if self.elapsed_timer > 2 and main_state.fear_gauge != 0:
+            main_state.fear_gauge -= 1
             self.start_timer = get_time()
 
     def set_background(self, bg):
@@ -43,13 +42,13 @@ class PlayerFear:
     def recovery(self):
         self.end_timer = get_time()
         self.elapsed_timer = self.end_timer - self.start_timer
-        if self.fear_gauge < 20 and self.elapsed_timer > 1.5:
-            self.fear_gauge += 1
+        if main_state.fear_gauge < 20 and self.elapsed_timer > 1.5:
+            main_state.fear_gauge += 1
             self.start_timer = get_time()
 
 
     def update(self):
-        self.renew_fear_gauge = self.fear_gauge * 128 / 20
+        self.renew_fear_gauge = main_state.fear_gauge * 128 / 20
         if self.renew_fear_gauge == 0:
             self.damage_fear()
             if main_state.elapsed_timer > 5:

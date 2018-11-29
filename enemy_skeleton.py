@@ -5,6 +5,8 @@ import main_state
 import random
 from BehaviorTree import BehaviorTree, SelectorNode, SequenceNode, LeafNode
 import player
+import pickle
+
 
 PIXEL_PER_METER = (10.0/0.3)  # 10 pixel 30cm
 RUN_SPEED_KMPH = 8.0  # km/hour
@@ -19,8 +21,7 @@ FRAMES_PER_ACTION = 4
 
 class Skeleton:
     image = None
-
-    def __init__(self):
+    def __init__(self, speed, hp , damege):
         self.x, self.y = random.randint(300, 1600), random.randint(300, 1600)
         self.frame = 0
         self.act_frame = 768 - 96
@@ -29,11 +30,11 @@ class Skeleton:
         self.collision_start_timer = get_time()
         self.collision_end_timer = 0
         self.dir = random.random() * 2 * math.pi  # random moving direction
-        self.speed = 0
+        self.speed = speed
         self.print_font = 0
         self.font = load_font('ENCR10B.TTF', 18)
-        self.hp = 0.1 * 100
-        self.damage = 0.01 * 100
+        self.hp = hp
+        self.damage = damege
         self.build_behavior_tree()
         if Skeleton.image == None:
             Skeleton.image = load_image("resource\Monsters_skele.png")  # 611X564
@@ -83,7 +84,7 @@ class Skeleton:
         self.x = clamp(50, self.x, self.bg.w - 50)
         self.y = clamp(200, self.y, self.bg.h - 50)
         if self.print_font == 1:
-            self.font_frame += 2
+            self.font_frame = (self.font_frame + 100 * game_framework.frame_Time)
             if self.font_frame > 60:
                 self.print_font = 0
                 self.font_frame = 40
@@ -108,3 +109,36 @@ class Skeleton:
             self.font.draw(self.x - 20 - self.bg.window_left, self.y - self.bg.window_bottom + self.font_frame, 'Hit!', (100, 200, 100))
         self.image.clip_draw(int(self.frame) * 96, self.act_frame, 96, 64, self.x - self.bg.window_left, self.y - self.bg.window_bottom)
         draw_rectangle(*self.get_hitbox())
+
+
+
+skeleton_data_list = [
+    {'speed': 0, 'hp': 0.1*100, 'damage': 0.1*100},
+    {'speed': 1, 'hp': 0.1* 100,'damage':0.01*100},
+    {'speed': 2, 'hp': 0.13* 100,'damage':0.013*100},
+    {'speed': 2, 'hp': 0.15* 100,'damage':0.015*100},
+    {'speed': 2, 'hp': 0.15* 100,'damage':0.015*100},
+    {'speed': 2, 'hp': 0.2*100, 'damage': 0.2*100},
+    {'speed': 2, 'hp': 0.2*100, 'damage': 0.2*100},
+    {'speed': 2, 'hp': 0.2*100, 'damage': 0.2*100},
+    {'speed': 2, 'hp': 0.2*100, 'damage': 0.2*100},
+    {'speed': 2, 'hp': 0.2*100, 'damage': 0.2*100},
+    {'speed': 2, 'hp': 0.2*100, 'damage': 0.2*100},
+    {'speed': 2, 'hp': 0.25* 100,'damage':0.025*100},
+    {'speed': 3, 'hp': 0.3* 100,'damage':0.03*100},
+    {'speed': 3, 'hp': 0.3* 100,'damage':0.03*100},
+    {'speed': 3, 'hp': 0.3* 100,'damage':0.03*100},
+    {'speed': 3, 'hp': 0.35*100, 'damage': 0.35*100},
+    {'speed': 3, 'hp': 0.4* 100,'damage':0.04*100},
+    {'speed': 3, 'hp': 0.45* 100,'damage':0.045*100},
+    {'speed': 3, 'hp': 0.5* 100,'damage':0.05*100},
+    {'speed': 3, 'hp': 0.55* 100,'damage':0.055*100},
+    {'speed': 4, 'hp': 0.6* 100,'damage':0.06*100},
+    {'speed': 4, 'hp': 0.065* 100,'damage':0.065*100}
+]
+
+with open('skeleton_data_list.pickle', 'wb') as f:
+    pickle.dump(skeleton_data_list, f)
+
+
+

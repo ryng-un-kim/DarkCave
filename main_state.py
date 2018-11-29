@@ -1,4 +1,5 @@
 from pico2d import*
+import pickle
 import game_world
 import game_framework
 import random
@@ -21,7 +22,10 @@ from darkness import Darkness
 from bonfire import Bonfire
 from light import Light
 from cave_door import CaveDoor
-from ui import UI
+from ui import UI, MouseClickImage
+from build_bar import Build
+
+
 
 def collision(a, b):
     left_a, bot_a, right_a, top_a = a.get_hitbox()
@@ -36,7 +40,7 @@ def collision(a, b):
 
 
 def handle_events():
-    global see_right, skeletons, items, click, bonfire_ready
+    global see_right, skeletons, items, click, bonfire_ready, background, bonfire, light, stone, wood
     events = get_events()
     for event in events:
         if event.type == SDL_QUIT:
@@ -50,9 +54,18 @@ def handle_events():
         elif event.type == SDL_KEYDOWN and event.key == SDLK_i:
             game_framework.push_state(inventory_state)
         elif event.type == SDL_MOUSEBUTTONDOWN and event.button == SDL_BUTTON_RIGHT:
-            pass
-        elif event.type == SDL_MOUSEBUTTONUP and event.button == SDL_BUTTON_RIGHT:
-            pass
+            if collision(ui, mousecursor):
+                if stone >= 2 and wood >= 2:
+                    game_world.remove_object(bonfire)
+                    game_world.remove_object(light)
+                    bonfire = Bonfire(player.x, player.y)
+                    game_world.add_object(bonfire, 3)
+                    bonfire.set_background(background)
+                    light = Light(bonfire.x, bonfire.y)
+                    game_world.add_object(light, 3)
+                    light.set_background(background)
+                    stone -= 2
+                    wood -= 2
         else:
             player.handle_event(event)
 
@@ -63,6 +76,7 @@ VIEW_WIDTH = 1024
 VIEW_HEIGHT = 768
 TILESIZE = 64
 
+renew_hp, food_gauge, water_gauge, fear_gauge, temp_gauge= 20, 20 ,20, 20, 20
 see_right = True
 click = False
 right_click = False
@@ -81,7 +95,6 @@ player_fear = None
 player_water = None
 player_food = None
 player_temperature = None
-draging = False
 material_stones = None
 material_woods = None
 darkness = None
@@ -89,14 +102,21 @@ bonfire = None
 light = None
 cave_door = None
 ui = None
+build_bar = None
+stone = 0
+wood = 0
+mouse_right_click_image = None
+main_music = None
+
 def get_player():
     return player
 
 
 def enter():
-    global ui, cave_door, light, bonfire, darkness, material_woods, material_stones, inventory, player_fear, player_water, \
+    global main_music, mouse_right_click_image, build_bar, ui, cave_door, light, bonfire, darkness, material_woods, material_stones,  player_fear, player_water, \
         player_food, player_temperature, player, background, \
-        wall, mousecursor, items, skeletons, start_timer, player_health, map
+        mousecursor, items, skeletons, start_timer, player_health, map,renew_hp, food_gauge, water_gauge, fear_gauge, temp_gauge
+
     player = Player((VIEW_WIDTH / 2), (VIEW_HEIGHT / 2))
     player_health = PlayerHealth(player.renew_hp)
     player_fear = Fear(player_health.x, player_health.y)
@@ -104,20 +124,37 @@ def enter():
     player_food = Food(player_health.x, player_health.y)
     player_water = Water(player_health.x, player_health.y)
     mousecursor = MouseCursor(100, 100)
-    material_stones = [MaterialStone() for i in range(1, 3)]
-    material_woods = [MaterialWood() for i in range(1, 3)]
-    skeletons = [Skeleton() for i in range(1, 5)]
+    material_stones = [MaterialStone() for i in range(1, 2+1)]
+    material_woods = [MaterialWood() for i in range(1, 2+1)]
+    skeletons = [Skeleton(0, 0.1 * 100, 0.01 * 100) for i in range(1, 4+1)]
+    if loading_state.day_count > 5:
+        skeletons = [Skeleton(0, 0.1 * 100, 0.01 * 100) for i in range(1, 6 + 1)]
+    with open('skeleton_data_list.pickle', 'rb') as f:
+        skeleton_data_list = pickle.load(f)
+
+    for i in range(1, 20+1):
+        if loading_state.day_count == i:
+            for skeleton in skeletons:
+                skeleton.__dict__.update(skeleton_data_list[i])
+        if loading_state.day_count > 20:
+            for skeleton in skeletons:
+                skeleton.__dict__.update(skeleton_data_list[20])
+
     items = [Item() for i in range(random.randint(1, 5))]
     background = Background()
     map = Map()
     darkness = Darkness()
-    bonfire = Bonfire()
-    light = Light(bonfire.x, bonfire.y)
-    cave_door = CaveDoor(background.w - 50, background.h/2 + 200)
+    cave_door = CaveDoor(background.w - 50, random.randint(210, background.h - 50))
     ui = UI()
+    mouse_right_click_image = MouseClickImage(903 , 46)
 
-    game_world.add_object(ui, 4)
+    renew_hp, food_gauge, water_gauge, fear_gauge, temp_gauge = player.hp, 20, 20, 20, 20
+
+    build_bar = Build(player.x, player.y)
     game_world.add_object(cave_door, 1)
+    game_world.add_object(mouse_right_click_image, 4)
+    game_world.add_object(build_bar, 3)
+    game_world.add_object(ui, 4)
     game_world.add_objects(material_woods, 1)
     game_world.add_objects(material_stones, 1)
     game_world.add_object(mousecursor, 4)
@@ -133,16 +170,16 @@ def enter():
     game_world.add_object(map, 2)
     game_world.add_object(darkness, 2)
 
+    build_bar.set_background(background)
+    build_bar.set_player(player)
 
-    cave_door.set_background(background)
-    bonfire.set_background(background)
     darkness.set_background(background)
     player_fear.set_background(background)
     player.set_background(background)
     background.set_center_object(player)
     player_fear.set_position(player)
-    light.set_background(background)
 
+    cave_door.set_background(background)
 
     for material_stone in material_stones:
         material_stone.set_background(background)
@@ -153,15 +190,26 @@ def enter():
     for item in items:
         item.set_background(background)
 
+    main_music = load_music('resource\main_music.mp3')
+    main_music.set_volume(100)
+    main_music.repeat_play()
+
+
+
+
+
 def exit():
     game_world.clear()
+    main_music.stop()
+
+
 
 
 def update():
-    global start_timer, end_timer, elapsed_timer, player_health, bonfire, light
+    global renew_hp, food_gauge, water_gauge, fear_gauge, temp_gauge, stone, wood, start_timer, end_timer, elapsed_timer, player_health, bonfire, light
 
-    if player.renew_hp <= 0:
-        player.renew_hp = 0.2 * 100
+    if renew_hp <= 0:
+        renew_hp = 0.2 * 100
         game_framework.change_state(title_state)
 
     for game_object in game_world.all_objects():
@@ -169,13 +217,14 @@ def update():
 
     for item in items:
         if collision(player, item):
-            if player_health.renew_hp < 20:
+            if renew_hp < 20:
                 items.remove(item)
                 game_world.remove_object(item)
-                player_health.renew_hp += 1
-            if player_food.food_gauge < 20:
+                player.eat(item)
+                renew_hp += 1
+            if food_gauge < 20:
                 game_world.remove_object(item)
-                player_food.food_gauge += 1
+                food_gauge += 1
         elif collision(mousecursor, item):
             if click:
                 item.drag(mousecursor)
@@ -187,9 +236,11 @@ def update():
                 game_world.remove_object(weapon)
                 player.weapons.remove(weapon)
                 skeleton.hit()
+                player.skeleton_hit_sound(skeleton)
                 if skeleton.hp == 0:
                     game_world.remove_object(skeleton)
                     skeletons.remove(skeleton)
+
 
 
     for skeleton in skeletons:
@@ -198,7 +249,7 @@ def update():
             elapsed_timer = end_timer - start_timer
             # print(start_timer, end_timer, elapsed_timer)
             game_world.remove_object(player_health)
-            player_health = PlayerHealth(player.renew_hp)
+            player_health = PlayerHealth()
             game_world.add_object(player_health, 2)
             end_timer = get_time()
         elif collision(player_fear, skeleton):
@@ -206,47 +257,32 @@ def update():
 
     for material_stone in material_stones:
         if collision(player, material_stone):
+            player.pickup_sound(material_stone)
             game_world.remove_object(material_stone)
             material_stones.remove(material_stone)
             # player.material_stone_count(material_stone)
             ui.set_stone_counter()
 
+
     for material_wood in material_woods:
         if collision(player, material_wood):
+            player.pickup_sound(material_wood)
             game_world.remove_object(material_wood)
             material_woods.remove(material_wood)
             # player.material_stone_count(material_stone)
             ui.set_wood_counter()
 
 
-    if collision(player, light):
-        player_fear.recovery()
-        player_temperature.recovery()
-
-    if collision(player, cave_door):
-        game_framework.change_state(loading_state)
-
-    if collision(ui, mousecursor):
-        if ui.stone >= 2 and ui.wood >= 2 and click == True:
-            ui.stone -= 2
-            ui.wood -= 2
-            game_world.remove_object(bonfire)
-            game_world.remove_object(light)
-            bonfire = Bonfire(player.x, player.y)
-            game_world.add_object(bonfire, 3)
-            bonfire.set_background(background)
-            light = Light(bonfire.x, bonfire.y)
-            game_world.add_object(light, 3)
-            light.set_background(background)
+    if light != None:
+        if collision(player, light):
+            player_fear.recovery()
+            player_temperature.recovery()
 
 
-
-
-
-
-
-
-
+    if len(skeletons) == 0:
+        if collision(player, cave_door):
+            cave_door.open_sound(cave_door)
+            game_framework.change_state(loading_state)
 
 
 

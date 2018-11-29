@@ -9,8 +9,8 @@ class Item:
 
     def __init__(self):
         self.size = 40
-        self.x = random.randint(100, 1600)
-        self.y = random.randint(200, 1000)
+        self.x = random.randint(100, 1500)
+        self.y = random.randint(200, 950)
         self.r = 0
         if Item.image == None:
             Item.image = load_image("resource\Item.png")

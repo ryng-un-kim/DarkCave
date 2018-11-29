@@ -8,7 +8,6 @@ class PlayerFood:
         self.x = x + 420
         self.y = y
         self.frame = 0
-        self.food_gauge = 20
         self.renew_food_gauge = 0
         self.start_timer = get_time()
         if PlayerFood.image == None:
@@ -19,15 +18,15 @@ class PlayerFood:
         main_state.elapsed_timer = main_state.end_timer - main_state.start_timer
 
     def update(self):
-        self.renew_food_gauge = self.food_gauge * 128 / 20
+        self.renew_food_gauge = main_state.food_gauge * 128 / 20
         self.end_timer = get_time()
         self.elapsed_timer = self.end_timer - self.start_timer
-        if self.elapsed_timer > 12 and self.food_gauge != 0:
-            self.food_gauge -= 1
+        if self.elapsed_timer > 10 and main_state.food_gauge != 0:
+            main_state.food_gauge -= 1
             self.start_timer = get_time()
         if self.renew_food_gauge == 0:
             self.damage_food()
-            if main_state.elapsed_timer > 6:
+            if main_state.elapsed_timer > 5:
                 main_state.player_health.damage_food()
 
     def draw(self):
