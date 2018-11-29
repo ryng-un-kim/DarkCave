@@ -199,8 +199,10 @@ def enter():
 
 
 def exit():
+    global main_music
     game_world.clear()
     main_music.stop()
+    del main_music
 
 
 
@@ -224,6 +226,7 @@ def update():
                 renew_hp += 1
             if food_gauge < 20:
                 game_world.remove_object(item)
+                player.eat(item)
                 food_gauge += 1
         elif collision(mousecursor, item):
             if click:
