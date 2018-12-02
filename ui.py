@@ -2,7 +2,6 @@ from pico2d import *
 import game_framework
 import main_state
 import loading_state
-import pickle
 
 
 TIME_PER_ACTION = 1

@@ -33,21 +33,15 @@ def enter():
     title_music.repeat_play()
 
 
-
 def exit():
     global screen_image, play_button, title_name,title_music
     title_music.stop()
     del(screen_image, play_button, title_name,title_music)
 
 
-
 def update():
     global frame
     frame = (frame - 1 * 8 * game_framework.frame_Time) %4
-
-
-
-
 
 
 def draw():
@@ -57,6 +51,7 @@ def draw():
     play_button.clip_draw(0, int(frame) * 82, 452, 82, 1024/2, 764/8)
     title_name.clip_draw(0, 0, 1000, 300, 1024/2, 764 - 300)
     update_canvas()
+
 
 def handle_events():
     global mousecursor

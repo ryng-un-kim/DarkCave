@@ -4,7 +4,6 @@ import game_world
 import game_framework
 import random
 import title_state
-import start_state
 import level_up_state
 import loading_state
 from mousecursor import MouseCursor
@@ -16,7 +15,7 @@ from background import FixedBackground as Background
 from fear_bar import PlayerFear as Fear
 from water_bar import PlayerWater as Water
 from food_bar import PlayerFood as Food
-from Exp_bar import Exp
+from exp_bar import Exp
 from temperature_bar import PlayerTemperature as Temperature
 from material import MaterialStone, MaterialWood
 from darkness import Darkness
@@ -25,7 +24,6 @@ from light import Light
 from cave_door import CaveDoor
 from ui import UI, MouseClickImage, PauseImage, SupportImage
 from levelup import StoneDamage
-from build_bar import Build
 import pause_state
 
 

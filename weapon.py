@@ -1,13 +1,12 @@
 from pico2d import *
 import game_world
 import game_framework
-import player
 import main_state
-import random
 VIEW_WIDTH = 1024
 VIEW_HEIGHT = 768
 
 PIXEL_PER_METER = (10.0/0.3)  # 10 pixel 30cm
+
 THROW_SPEED_KMPH = 120.0  # km/hour
 THROW_SPEED_MPM = (THROW_SPEED_KMPH * 1000/60)
 THROW_SPEED_MPM = (THROW_SPEED_MPM / 60)
@@ -95,7 +94,7 @@ class Weapon:
 
     def draw(self):
         self.unit.clip_draw(self.frame * self.size, 0, 32, 32, self.x - self.bg.window_left , self.y - self.bg.window_bottom)
-        draw_rectangle(*self.get_hitbox())
+        # draw_rectangle(*self.get_hitbox())
 
 
 

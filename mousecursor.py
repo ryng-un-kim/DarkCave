@@ -28,7 +28,7 @@ class MouseCursor:
 
     def draw(self):
         self.image.draw(self.image.x, self.image.y)
-        draw_rectangle(*self.get_hitbox())
+
 
 
 

@@ -6,7 +6,7 @@ import game_world
 import player
 from levelup import LevelUp
 from weapon import Weapon
-from Exp_bar import HealthUP, DamageUP
+from exp_bar import HealthUP, DamageUP
 
 VIEW_WIDTH = 1024
 VIEW_HEIGHT = 768

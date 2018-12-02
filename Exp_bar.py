@@ -43,7 +43,6 @@ class HealthUP:
 
     def draw(self):
         self.image.clip_draw(self.frame, 64, 64, 64, self.x, self.y)
-        draw_rectangle(*self.get_hitbox())
 
 
 class DamageUP:
@@ -64,4 +63,3 @@ class DamageUP:
 
     def draw(self):
         self.image.clip_draw(self.frame, 0, 64, 64, self.x, self.y)
-        draw_rectangle(*self.get_hitbox())
