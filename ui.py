@@ -47,7 +47,7 @@ class UI:
         elif main_state.wood >= 2 and main_state.stone >= 2:
             self.image.clip_draw(int(self.frame) * 50, 0, 50, 80, self.x, self.y)
         self.jua_font.draw(50, 700, 'Day %2.0f' % loading_state.day_count, (255, 255, 255))
-        draw_rectangle(*self.get_hitbox())
+        # draw_rectangle(*self.get_hitbox())
 
 class MouseClickImage:
     image = None
@@ -63,3 +63,37 @@ class MouseClickImage:
         self.image.draw(self.x, self.y)
 
 
+class PauseImage:
+    image = None
+
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+        if PauseImage.image == None:
+            PauseImage.image = load_image('resource\pause_button.png')
+
+    def get_hitbox(self):
+        return self.x - 16, self.y - 16, self.x + 16, self.y + 16
+
+    def update(self):
+        pass
+
+    def draw(self):
+        self.image.draw(self.x, self.y)
+
+
+class SupportImage:
+    image = None
+
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+        if SupportImage.image == None:
+            SupportImage.image = load_image('resource\support_button.png')
+
+    def get_hitbox(self):
+        return self.x - 16, self.y - 16, self.x + 16, self.y + 16
+
+    def update(self):
+        pass
+
+    def draw(self):
+        self.image.draw(self.x, self.y)

@@ -21,13 +21,15 @@ class PlayerFood:
         self.renew_food_gauge = main_state.food_gauge * 128 / 20
         self.end_timer = get_time()
         self.elapsed_timer = self.end_timer - self.start_timer
-        if self.elapsed_timer > 10 and main_state.food_gauge != 0:
+        if self.elapsed_timer > 8 and main_state.food_gauge != 0:
             main_state.food_gauge -= 1
             self.start_timer = get_time()
         if self.renew_food_gauge == 0:
             self.damage_food()
             if main_state.elapsed_timer > 5:
                 main_state.player_health.damage_food()
+        elif main_state.food_gauge >= 20:
+            main_state.food_gauge = 20
 
     def draw(self):
         self.image.clip_draw(self.frame, 0, int(self.renew_food_gauge), 16, self.x - (128 - int(self.renew_food_gauge))/2, self.y)

@@ -2,6 +2,7 @@ import game_framework
 from pico2d import *
 import main_state
 import loading_state
+
 name = 'title_state'
 screen_image = None
 play_button = None
@@ -24,7 +25,10 @@ def enter():
     main_state.stone = 0
     main_state.wood = 0
     main_state.renew_hp, main_state.food_gauge, \
-    main_state.water_gauge, main_state.fear_gauge, main_state.temp_gauge = 20, 20, 20, 20, 20
+    main_state.max_hp, main_state.water_gauge, \
+    main_state.fear_gauge, main_state.temp_gauge, main_state.exp_gauge = 20, 20, 20, 20, 20, 20, 0
+    main_state.player_damage = 0.01 * 100
+    main_state.player_max_exp = 10
     title_music.set_volume(100)
     title_music.repeat_play()
 
@@ -39,7 +43,7 @@ def exit():
 
 def update():
     global frame
-    frame = (frame - 1 * 8 * game_framework.frame_Time)%4
+    frame = (frame - 1 * 8 * game_framework.frame_Time) %4
 
 
 

@@ -65,4 +65,4 @@ class PlayerFear:
                            self.player.y - self.bg.window_bottom + random.randint(40, 43), 'Fear', (160, 0, 255))
 
         self.image.clip_draw(self.frame, 0, int(self.renew_fear_gauge), 16, self.x - (128 - int(self.renew_fear_gauge))/2, self.y)
-        draw_rectangle(*self.get_hitbox())
+        # draw_rectangle(*self.get_hitbox())

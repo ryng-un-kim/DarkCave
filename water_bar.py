@@ -30,5 +30,6 @@ class PlayerWater:
             if main_state.elapsed_timer > 6:
                 main_state.player_health.damage_water()
 
+
     def draw(self):
         self.image.clip_draw(self.frame, 0, int(self.renew_water_gauge), 16, self.x - (128 -int(self.renew_water_gauge))/2, self.y)

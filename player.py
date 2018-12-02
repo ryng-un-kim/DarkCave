@@ -3,6 +3,8 @@ from pico2d import*
 import game_world
 import random
 import main_state
+import pause_state
+import support_state
 import start_state
 from effect import Effect
 from weapon import Weapon
@@ -11,11 +13,11 @@ import mousecursor
 
 
 PIXEL_PER_METER = (10.0/0.3)  # 10 pixel 30cm
+
 RUN_SPEED_KMPH = 20.0  # km/hour
 RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000/60)
 RUN_SPEED_MPS = (RUN_SPEED_MPM / 60)
 RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
-
 
 TIME_PER_ACTION = 2
 ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
@@ -40,6 +42,7 @@ key_event_table = {
 }
 weapon = None
 
+
 class IdleState:
     @staticmethod
     def enter(player, event):
@@ -52,8 +55,6 @@ class IdleState:
         elif event == DOWN_DOWN:
             player.y_velocity -= RUN_SPEED_PPS
 
-
-
     @staticmethod
     def exit(player, event):
         if event == LMOUSE_DOWN:
@@ -61,6 +62,7 @@ class IdleState:
             player.throw_weapon()
         elif event == LMOUSE_UP:
             main_state.click = False
+
     @staticmethod
     def do(player):
         if main_state.mousecursor.x > player.x - player.bg.window_left:
@@ -124,7 +126,7 @@ class MoveState:
         if player.x_velocity == 0 and player.y_velocity == 0:
             player.end_timer = get_time()
             player.elapsed_timer = player.end_timer - player.start_timer
-            if player.elapsed_timer > 0.2:
+            if player.elapsed_timer > 0.3:
                 player.add_event(IdleState)
 
     @staticmethod
@@ -151,8 +153,13 @@ class AttackState:
                 player.effect_act()
                 player.throw_weapon()
                 player.attack_start_timer = get_time()
+            if main_state.collision(main_state.pause_button, main_state.mousecursor):
+                game_framework.push_state(pause_state)
+            elif main_state.collision(main_state.support_button, main_state.mousecursor):
+                game_framework.push_state(support_state)
         elif event == LMOUSE_UP:
             main_state.click = False
+
     @staticmethod
     def exit(player, event):
         pass
@@ -170,11 +177,6 @@ class AttackState:
         player.y += player.y_velocity * game_framework.frame_Time
         player.attack_end_timer = get_time()
         player.attack_elapsed_timer = player.attack_end_timer - player.attack_start_timer
-
-
-
-
-
 
     @staticmethod
     def draw(player):
@@ -205,9 +207,11 @@ next_state_table = {
 
 }
 
+
 class Player:
     unit = None
     weapons = []
+
     def __init__(self, x, y, x_velocity=0, y_velocity= 0, renew_hp=0.2*100):
         self.x = x
         self.y = y
@@ -229,11 +233,11 @@ class Player:
         self.attack_start_timer = 0
         self.attack_end_timer = 0
         self.attack_elapsed_timer = 0
-        self.hp = 0.2 * 100
+        self.hp = main_state.renew_hp
         self.stone_count = 0
         self.renew_hp = renew_hp
         self.hit_sound = load_wav('resource\skele_hit.wav')
-        self.hit_sound.set_volume(20)
+        self.hit_sound.set_volume(30)
         self.eat_sound = load_wav('resource\eat_food.wav')
         self.eat_sound.set_volume(32)
         self.get_item = load_wav('resource\pickup.wav')
@@ -245,7 +249,7 @@ class Player:
     def pickup_sound(self, material_stone):
         self.get_item.play()
 
-    def eat(self, item):
+    def eat(self):
         self.eat_sound.play()
 
     def skeleton_hit_sound(self, weapon):
@@ -264,8 +268,6 @@ class Player:
 
     def throw_weapon(self):
         self.weapons = [Weapon(self.x, self.y, self.x_velocity, self.y_velocity) for i in range(1)]
-        # for weapon in self.weapons:
-            # weapon.set_force(random.randint(3, 4), 3)
         game_world.add_objects(self.weapons, 1)
         for self.weapon in self.weapons:
             self.weapon.set_background(self.bg)
@@ -276,8 +278,6 @@ class Player:
     def damage_collision(self, skeleton_damage):
         main_state.renew_hp -= skeleton_damage
         main_state.start_timer = get_time()
-        # print(self.renew_hp, self.hp)
-
 
     def set_background(self, bg):
         self.bg = bg
@@ -292,13 +292,11 @@ class Player:
             self.cur_state = next_state_table[self.cur_state][event]
             self.cur_state.enter(self, event)
 
-
-
     def draw(self):
         self.cx = self.x - self.bg.window_left
         self.cy = self.y - self.bg.window_bottom
         self.cur_state.draw(self)
-        draw_rectangle(*self.get_hitbox())
+        # draw_rectangle(*self.get_hitbox())
 
     def handle_event(self, event):
         if (event.type, event.key, event.button) in key_event_table:
@@ -306,20 +304,16 @@ class Player:
             self.add_event(key_event)
 
 
-
-
-
-
-
 class PlayerHealth():
     image = None
+
     def __init__(self, material_counter= 0):
-        self.x=120
+        self.x=110
         self.y=764/14
         self.material_counter = material_counter
         if PlayerHealth.image == None:
             PlayerHealth.image = load_image('resource\health.png')
-        self.health = main_state.renew_hp * 128/ main_state.player.hp
+        self.health = main_state.renew_hp * 128/ main_state.max_hp
         self.small_jua_font = load_font('ENCR10B.TTF', 14)
         self.jua_font = load_font('ENCR11B.TTF', 20)
 
@@ -338,16 +332,15 @@ class PlayerHealth():
     def damage_fear(self):
         main_state.renew_hp -= 1
         main_state.start_timer = get_time()
+
     def set_count(self):
         self.material_counter += 1
 
     def update(self):
-        self.health = main_state.renew_hp * 128 / main_state.player.hp
-
-
+        self.health = main_state.renew_hp * 128 / main_state.max_hp
 
     def draw(self):
         self.image.clip_draw(0,0,int(self.health),16,self.x-(128-int(self.health))/2 ,self.y)
-        self.jua_font.draw(90, 764 / 10, 'Health                  Fear             Temperature             Food                  Water', (255, 255, 255))
-        self.small_jua_font.draw(92, 764 / 20,'%2.0f/' % main_state.renew_hp, (255, 255, 255))
-        self.small_jua_font.draw(122, 764 / 20, '%2.0f' % main_state.player.hp, (255, 255, 255))
+        self.jua_font.draw(80, 764 / 10, 'Health                  Fear             Temperature             Food                  Water                     Exp', (255, 255, 255))
+        self.small_jua_font.draw(92, 764 / 20,'%2.0f/%2.0f' % (main_state.renew_hp,main_state.max_hp), (255, 255, 255))
+

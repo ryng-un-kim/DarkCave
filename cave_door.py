@@ -31,5 +31,5 @@ class CaveDoor:
         else:
             self.image.clip_draw(64, 0, 70, 70, self.x - self.bg.window_left, self.y - self.bg.window_bottom)
 
-        draw_rectangle(*self.get_hitbox())
+
 

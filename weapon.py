@@ -37,7 +37,6 @@ class Weapon:
         else:     # 마우스 좌우 발사
             self.dir = -1
         self.y_throwvelocity = 0
-        self.damage = 0.01 * 100
         self.x_velocity, self.y_velocity = x_velocity, y_velocity
         self.x_throwvelocity = THROW_SPEED_MPM + (self.dir * x_velocity)
 
@@ -47,6 +46,8 @@ class Weapon:
     def set_background(self, bg):
         self.bg = bg
 
+    def damage_up(self):
+        self.damage += 1
 
     def set_force(self, force, mass):
         self.force = force
