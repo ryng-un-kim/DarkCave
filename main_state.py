@@ -51,6 +51,7 @@ def handle_events():
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             del (skeletons)
             del (items)
+            del light
             game_framework.change_state(title_state)
         elif event.type == SDL_KEYDOWN and event.key == SDLK_p:
             game_framework.push_state(pause_state)
@@ -164,6 +165,7 @@ def enter():
     pause_button = PauseImage(970, 710)
     support_button = SupportImage(970, 650)
     stone_damage = StoneDamage(55, 145)
+    light = Light(-300, -300)
 
     game_world.add_object(stone_damage, 4)
     game_world.add_object(pause_button, 4)
@@ -194,6 +196,7 @@ def enter():
     background.set_center_object(player)
     player_fear.set_position(player)
     cave_door.set_background(background)
+    light.set_background(background)
 
     for material_stone in material_stones:
         material_stone.set_background(background)
@@ -212,10 +215,10 @@ def enter():
 
 
 def exit():
-    global main_music
+    global main_music, light
     game_world.clear()
     main_music.stop()
-    del main_music
+    del main_music, light
 
 
 def update():
@@ -284,10 +287,9 @@ def update():
             # player.material_stone_count(material_stone)
             ui.set_wood_counter()
 
-    if light != None:
-        if collision(player, light):
-            player_fear.recovery()
-            player_temperature.recovery()
+    if collision(player, light):
+        player_fear.recovery()
+        player_temperature.recovery()
 
     if len(skeletons) == 0:
         if collision(player, cave_door):
