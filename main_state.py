@@ -167,6 +167,7 @@ def enter():
     stone_damage = StoneDamage(55, 145)
     light = Light(-300, -300)
 
+    game_world.add_object(light, 0)
     game_world.add_object(stone_damage, 4)
     game_world.add_object(pause_button, 4)
     game_world.add_object(support_button, 4)
@@ -216,9 +217,11 @@ def enter():
 
 def exit():
     global main_music, light
-    game_world.clear()
     main_music.stop()
-    del main_music, light
+    del main_music
+    game_world.clear()
+
+
 
 
 def update():

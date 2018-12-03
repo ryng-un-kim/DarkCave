@@ -21,7 +21,7 @@ class PlayerWater:
         self.renew_water_gauge = main_state.water_gauge * 128 / 20
         self.end_timer = get_time()
         self.elapsed_timer = self.end_timer - self.start_timer
-        if self.elapsed_timer > 13 and main_state.water_gauge != 0:
+        if self.elapsed_timer > 10 and main_state.water_gauge != 0:
             main_state.water_gauge -= 1
             self.start_timer = get_time()
         self.renew_water_gauge = main_state.water_gauge * 128 / 20

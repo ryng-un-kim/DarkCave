@@ -28,7 +28,7 @@ class PlayerTemperature:
         self.renew_temp_gauge = main_state.temp_gauge * 128 / 20
         self.end_timer = get_time()
         self.elapsed_timer = self.end_timer - self.start_timer
-        if self.elapsed_timer > 12 and main_state.temp_gauge != 0:
+        if self.elapsed_timer > 4 and main_state.temp_gauge != 0:
             main_state.temp_gauge -= 1
             self.start_timer = get_time()
         if self.renew_temp_gauge == 0:

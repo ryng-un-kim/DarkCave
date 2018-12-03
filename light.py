@@ -25,5 +25,4 @@ class Light:
 
     def draw(self):
         self.image.clip_draw(0, 0, 300, 300, self.x- self.bg.window_left, self.y- self.bg.window_bottom)
-        # draw_rectangle(*self.get_hitbox())
 

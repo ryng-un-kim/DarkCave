@@ -21,7 +21,7 @@ class PlayerFood:
         self.renew_food_gauge = main_state.food_gauge * 128 / 20
         self.end_timer = get_time()
         self.elapsed_timer = self.end_timer - self.start_timer
-        if self.elapsed_timer > 8 and main_state.food_gauge != 0:
+        if self.elapsed_timer > 6 and main_state.food_gauge != 0:
             main_state.food_gauge -= 1
             self.start_timer = get_time()
         if self.renew_food_gauge == 0:
