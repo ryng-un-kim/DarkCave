@@ -126,7 +126,7 @@ def enter():
         cave_door, light, bonfire, darkness, material_woods, material_stones,  player_fear, player_water, \
         player_food, player_temperature, player, background, \
         mousecursor, items, skeletons, start_timer, player_health, map, renew_hp, food_gauge, water_gauge, fear_gauge, temp_gauge
-
+    light = None
     player = Player((VIEW_WIDTH / 2), (VIEW_HEIGHT / 2))
     player_health = PlayerHealth(player.hp)
     player_fear = Fear(player_health.x, player_health.y)
@@ -135,9 +135,9 @@ def enter():
     player_water = Water(player_health.x, player_health.y)
     player_exp = Exp(player_health.x, player_health.y)
     mousecursor = MouseCursor(100, 100)
-    material_stones = [MaterialStone() for i in range(1, 2+1)]
-    material_woods = [MaterialWood() for i in range(1, 2+1)]
-    skeletons = [Skeleton(0, 0.1 * 100, 0.01 * 100) for i in range(1, 5+1)]
+    material_stones = [MaterialStone() for i in range(1, random.randint(2, 4))]
+    material_woods = [MaterialWood() for i in range(0, random.randint(0, 2))]
+    skeletons = [Skeleton(0, 0.1 * 100, 0.01 * 100) for i in range(1, random.randint(3, 5))]
     if loading_state.day_count > 10:
         skeletons = [Skeleton(0, 0.1 * 100, 0.01 * 100) for i in range(1, 8 + 1)]
     with open('skeleton_data_list.pickle', 'rb') as f:
@@ -165,9 +165,9 @@ def enter():
     pause_button = PauseImage(970, 710)
     support_button = SupportImage(970, 650)
     stone_damage = StoneDamage(55, 145)
-    light = Light(-300, -300)
 
-    game_world.add_object(light, 0)
+
+
     game_world.add_object(stone_damage, 4)
     game_world.add_object(pause_button, 4)
     game_world.add_object(support_button, 4)
@@ -197,7 +197,7 @@ def enter():
     background.set_center_object(player)
     player_fear.set_position(player)
     cave_door.set_background(background)
-    light.set_background(background)
+
 
     for material_stone in material_stones:
         material_stone.set_background(background)
@@ -289,10 +289,10 @@ def update():
             material_woods.remove(material_wood)
             # player.material_stone_count(material_stone)
             ui.set_wood_counter()
-
-    if collision(player, light):
-        player_fear.recovery()
-        player_temperature.recovery()
+    if light != None:
+        if collision(player, light):
+            player_fear.recovery()
+            player_temperature.recovery()
 
     if len(skeletons) == 0:
         if collision(player, cave_door):

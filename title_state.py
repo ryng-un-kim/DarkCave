@@ -22,21 +22,21 @@ def enter():
     title_name = load_image('resource\Title_name.png')
     title_music = load_music('resource\Title_music.mp3')
     loading_state.day_count = 0
-    main_state.stone = 0
-    main_state.wood = 0
+    main_state.stone = 2
+    main_state.wood = 2
     main_state.renew_hp, main_state.food_gauge, \
     main_state.max_hp, main_state.water_gauge, \
     main_state.fear_gauge, main_state.temp_gauge, main_state.exp_gauge = 20, 20, 20, 20, 20, 20, 0
     main_state.player_damage = 0.01 * 100
     main_state.player_max_exp = 10
     title_music.set_volume(100)
-    title_music.repeat_play()
+    title_music.play()
 
 
 def exit():
-    global screen_image, play_button, title_name,title_music
+    global screen_image, play_button, title_name, title_music
     title_music.stop()
-    del(screen_image, play_button, title_name,title_music)
+    del(screen_image, play_button, title_name, title_music)
 
 
 def update():
